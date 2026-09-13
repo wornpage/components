@@ -12,7 +12,7 @@ describe('@wornpage/navigation-surfaces', () => {
 	it('declares one source-delivered v2 package', () => {
 		const pkg = require('../package.json');
 		expect(pkg.name).toBe('@wornpage/navigation-surfaces');
-		expect(pkg.version).toBe('0.2.2');
+		expect(pkg.version).toBe('0.2.3');
 		expect(pkg.wornpage).toEqual({ contractVersion: 2, delivery: 'source' });
 		expect(pkg.main).toBe('./src/index.ts');
 		expect(pkg.files).not.toContain('dist');

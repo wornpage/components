@@ -8,7 +8,7 @@ describe("WornReceipt", () => {
   it("package name is correct", () => {
     const pkg = require("../package.json");
     expect(pkg.name).toBe("@wornpage/receipt");
-    expect(pkg.version).toBe("0.1.7");
+    expect(pkg.version).toBe("0.1.8");
   });
 
   it("uses the canonical shared button version without a nested archive", () => {

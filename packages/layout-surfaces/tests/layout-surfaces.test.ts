@@ -46,7 +46,7 @@ describe('@wornpage/layout-surfaces', () => {
 	it('declares one source-delivered v2 package', () => {
 		const pkg = require('../package.json');
 		expect(pkg.name).toBe('@wornpage/layout-surfaces');
-		expect(pkg.version).toBe('0.2.3');
+		expect(pkg.version).toBe('0.2.4');
 		expect(pkg.wornpage).toEqual({ contractVersion: 2, delivery: 'source' });
 		expect(pkg.main).toBe('./src/index.ts');
 		expect(pkg.files).not.toContain('dist');

@@ -64,7 +64,7 @@ describe('native field contract', () => {
   });
 
   test('paints the exact safe percentage without CSP-fragile styles or bucket classes', () => {
-    expect(packageJson.version).toBe('0.1.2');
+    expect(packageJson.version).toBe('0.1.3');
     expect(range).toContain('<svg class="worn-range-track" aria-hidden="true" focusable="false">');
     expect(range).toContain('<rect class="worn-range-fill" width={`${percentage}%`} height="100%"></rect>');
     expect(range).toContain('? Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100))');

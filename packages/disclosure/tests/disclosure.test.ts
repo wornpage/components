@@ -57,7 +57,7 @@ describe('compact and motion behavior', () => {
       expect(source).not.toContain('outline: 2px dashed var(--worn-accent);');
     }
     expect(readme).toContain('`--worn-disclosure-focus`');
-    expect(packageJson.version).toBe('0.1.1');
+    expect(packageJson.version).toBe('0.1.2');
   });
 
   test('keeps only transitions that can execute and honors reduced motion', () => {

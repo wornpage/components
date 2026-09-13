@@ -174,7 +174,7 @@ describe('command palette chrome', () => {
 
 describe('package entrypoints', () => {
 	test('declares the visible-input-focus release', () => {
-		expect(packageManifest.version).toBe('0.1.11');
+		expect(packageManifest.version).toBe('0.1.12');
 	});
 
 	test('keeps the Svelte component separate from the custom-element wrapper', () => {

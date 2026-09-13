@@ -44,7 +44,7 @@ describe('responsive interaction contract', () => {
 		);
 		expect(source).not.toContain('outline: 2px dashed var(--worn-accent);');
 		expect(readme).toContain('`--worn-select-card-focus`');
-		expect(packageJson.version).toBe('0.1.1');
+		expect(packageJson.version).toBe('0.1.2');
 	});
 
 	test('limits hover feedback to fine hover-capable pointers', () => {

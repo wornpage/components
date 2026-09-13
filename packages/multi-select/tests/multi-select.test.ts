@@ -62,7 +62,7 @@ describe('multi-select source', () => {
 	});
 
 	test('records the focus-owner release version', () => {
-		expect(packageJson.version).toBe('0.1.3');
+		expect(packageJson.version).toBe('0.1.4');
 	});
 
 	test('keeps disabled rows legible without browser opacity', () => {

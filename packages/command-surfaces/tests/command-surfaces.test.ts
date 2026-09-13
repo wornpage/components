@@ -11,7 +11,7 @@ describe('@wornpage/command-surfaces', () => {
 	it('declares one source-delivered v2 package', () => {
 		const pkg = require('../package.json');
 		expect(pkg.name).toBe('@wornpage/command-surfaces');
-		expect(pkg.version).toBe('0.1.1');
+		expect(pkg.version).toBe('0.1.2');
 		expect(pkg.wornpage).toEqual({ contractVersion: 2, delivery: 'source' });
 		expect(pkg.main).toBe('./src/index.ts');
 	});

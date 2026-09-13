@@ -12,7 +12,7 @@ describe('@wornpage/async-states', () => {
 	it('declares source delivery and exact shared dependencies', () => {
 		const pkg = require('../package.json');
 		expect(pkg.name).toBe('@wornpage/async-states');
-		expect(pkg.version).toBe('0.1.5');
+		expect(pkg.version).toBe('0.1.6');
 		expect(pkg.wornpage).toEqual({ contractVersion: 2, delivery: 'source' });
 		expect(pkg.peerDependencies['@wornpage/button']).toBe(require('../../button/package.json').version);
 		expect(pkg.devDependencies['@wornpage/button']).toBe('workspace:*');

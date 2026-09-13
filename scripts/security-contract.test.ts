@@ -1,0 +1,151 @@
+import { describe, expect, it } from "bun:test";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { COMPONENT_NAMES } from "./components.ts";
+
+const workflow = readFileSync(new URL("../.github/workflows/workspace.yml", import.meta.url), "utf8");
+const rootLicense = readFileSync(new URL("../LICENSE", import.meta.url), "utf8");
+const publicInstructions = [
+	readFileSync(new URL("../README.md", import.meta.url), "utf8"),
+	readFileSync(new URL("../CONTRIBUTING.md", import.meta.url), "utf8"),
+	readFileSync(new URL("../demo/src/ComponentExample.svelte", import.meta.url), "utf8"),
+].join("\n");
+
+const unsafeAptFlag = /trusted\s*=\s*yes|\[\s*trusted\s*\]|allow-unauthenticated|allow-insecure|AllowInsecureRepositories|no-check-certificate/;
+
+function assertChromeSourceGuardBeforeInstall(source: string) {
+	const guardIndex = source.indexOf("Disable unused Google Chrome APT sources");
+	const installIndex = source.indexOf("bunx playwright install --with-deps chromium");
+	expect(guardIndex).toBeGreaterThanOrEqual(0);
+	expect(installIndex).toBeGreaterThan(guardIndex);
+	const guard = source.slice(guardIndex, installIndex);
+	expect(guard).toContain("for source in /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome.sources");
+	expect(guard).toContain('sudo mv -- "$source" "$source.disabled"');
+	expect(guard).toContain('if [[ -e "$source.disabled" ]]; then');
+	expect(guard).toContain("exit 1");
+	expect(guard).not.toContain("grep -R");
+	expect(source).not.toMatch(unsafeAptFlag);
+}
+
+function chromeSourceGuard(source: string) {
+	const parsed = Bun.YAML.parse(source) as { jobs: Record<string, { steps: Array<{ name?: string; run?: string }> }> };
+	const guard = Object.values(parsed.jobs).flatMap((job) => job.steps).find((step) => step.name === "Disable unused Google Chrome APT sources")?.run;
+	expect(guard).toBeDefined();
+	return guard!.replaceAll("/etc/apt/sources.list.d", "$fixture_sources");
+}
+
+function nativeBash() {
+	if (process.platform !== "win32") return "bash";
+
+	const gitExecPath = spawnSync("git", ["--exec-path"], { encoding: "utf8", timeout: 5_000 });
+	if (gitExecPath.status !== 0) throw new Error(`git --exec-path failed: ${gitExecPath.stderr}`);
+	const bash = resolve(gitExecPath.stdout.trim(), "../../../bin/bash.exe");
+	if (!existsSync(bash)) throw new Error(`Git for Windows Bash not found at ${bash}`);
+	return bash;
+}
+
+function runChromeSourceGuard(source: string, fixture: string, assertion = "") {
+	const fixtureRoot = mkdtempSync(join(tmpdir(), "wornpage-chrome-apt-"));
+	const fixtureSources = join(fixtureRoot, "etc/apt/sources.list.d").replaceAll("\\", "/");
+	const scriptPath = join(fixtureRoot, "guard-fixture.sh");
+	const script = `
+set -euo pipefail
+sudo() { "$@"; }
+fixture_sources='${fixtureSources.replaceAll("'", "'\\''")}'
+mkdir -p "$fixture_sources"
+${fixture}
+${chromeSourceGuard(source)}
+${assertion}
+`;
+	writeFileSync(scriptPath, script.replaceAll("\r\n", "\n"), "utf8");
+	try {
+		return spawnSync(nativeBash(), [scriptPath.replaceAll("\\", "/")], { encoding: "utf8", timeout: 5_000 });
+	} finally {
+		rmSync(fixtureRoot, { recursive: true, force: true });
+	}
+}
+
+describe("repository security contract", () => {
+	it("publishes the MIT license declared by the root package and README", () => {
+		expect(rootLicense).toContain("MIT License");
+		expect(rootLicense).toContain("Copyright (c) 2026 Wornpage");
+		expect(rootLicense).toContain("Permission is hereby granted, free of charge");
+	});
+
+	it("pins every third-party action to a full commit", () => {
+		const references = [...workflow.matchAll(/^\s*uses:\s*([^\s#]+)/gmu)].map((match) => match[1]);
+		expect(references.length).toBeGreaterThan(0);
+		expect(references.every((reference) => /@[0-9a-f]{40}$/u.test(reference))).toBe(true);
+	});
+
+	it("guards Chromium installation from only the unused Google Chrome APT source", () => {
+		assertChromeSourceGuardBeforeInstall(workflow);
+	});
+
+	it("moves only known Chrome sources and fails before overwriting a backup", () => {
+		const moved = runChromeSourceGuard(workflow, `
+printf 'active\\n' > "$fixture_sources/google-chrome.list"
+printf 'active\\n' > "$fixture_sources/google-chrome.sources"
+printf 'unrelated\\n' > "$fixture_sources/unrelated.sources"
+`, `
+test ! -e "$fixture_sources/google-chrome.list"
+test -f "$fixture_sources/google-chrome.list.disabled"
+test ! -e "$fixture_sources/google-chrome.sources"
+test -f "$fixture_sources/google-chrome.sources.disabled"
+test -f "$fixture_sources/unrelated.sources"
+`);
+		expect(moved.status).toBe(0);
+
+		const absent = runChromeSourceGuard(workflow, "printf 'unrelated\\n' > \"$fixture_sources/unrelated.list\"", "test -f \"$fixture_sources/unrelated.list\"");
+		expect(absent.status).toBe(0);
+
+		const collision = runChromeSourceGuard(workflow, "printf 'active\\n' > \"$fixture_sources/google-chrome.list\"; printf 'backup\\n' > \"$fixture_sources/google-chrome.list.disabled\"");
+		expect(collision.status).not.toBe(0);
+		expect(collision.stdout).toContain("Refusing to overwrite disabled APT source");
+	}, 20_000);
+
+	it("keeps the one hosted release producer read-only and retains diagnostic evidence", () => {
+		const parsed = Bun.YAML.parse(workflow) as {
+			permissions: Record<string, string>;
+			jobs: Record<string, { permissions?: Record<string, string>; steps: Array<{ name?: string; run?: string; uses?: string; if?: string; with?: { name?: string; path?: string; "if-no-files-found"?: string } }> }>;
+		};
+		expect(parsed.permissions).toEqual({ contents: "read" });
+		for (const job of Object.values(parsed.jobs)) {
+			expect(job.permissions ?? parsed.permissions).toEqual({ contents: "read" });
+		}
+		const steps = Object.values(parsed.jobs).flatMap((job) => job.steps);
+		const commands = steps.map((step) => step.run ?? "").join("\n");
+		expect(commands).toContain("node scripts/verify-public-workflow-boundary.mjs");
+		expect(commands).not.toMatch(/prepare-component-release|gh\s+release/u);
+		const releaseUpload = steps.find((step) => step.name === "Upload release packages and verification evidence");
+		expect(releaseUpload?.if).toContain("success()");
+		expect(releaseUpload?.if).toContain("github.ref == 'refs/heads/main'");
+		expect(releaseUpload?.if).toContain("github.event_name == 'push'");
+		expect(releaseUpload?.if).toContain("github.event_name == 'workflow_dispatch'");
+		expect(releaseUpload?.with?.name).toBe("component-release-verification-${{ github.run_id }}-${{ github.run_attempt }}");
+		expect(releaseUpload?.with?.path).toContain("output/components/");
+		expect(releaseUpload?.with?.path).toContain("output/verify-catalog/");
+		expect(releaseUpload?.with?.["if-no-files-found"]).toBe("error");
+
+		const diagnosticUpload = steps.find((step) => step.name === "Upload diagnostic verification evidence");
+		expect(diagnosticUpload?.if).toContain("always()");
+		expect(diagnosticUpload?.if).toContain("job.status == 'success'");
+		expect(diagnosticUpload?.with?.path).toBe("output/verify-catalog/");
+		expect(diagnosticUpload?.with?.name).toBe("catalog-verification-${{ github.run_id }}-${{ github.run_attempt }}");
+		expect(workflow).not.toContain("Component release verification");
+	});
+
+	it("does not advertise the unavailable registry as an installation path", () => {
+		expect(publicInstructions).not.toMatch(/\b(?:bun add|npm (?:add|install)|bunx) @wornpage\//u);
+	});
+
+	it("routes all component source to the canonical workspace", () => {
+        for (const name of COMPONENT_NAMES) {
+            expect(publicInstructions).toContain(`packages/${name}`);
+        }
+        expect(publicInstructions).not.toContain('codeload.github.com/wornpage/');
+        expect(publicInstructions).not.toContain('bun run sync');
+    });
+});

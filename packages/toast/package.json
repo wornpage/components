@@ -1,0 +1,40 @@
+{
+  "name": "@wornpage/toast",
+  "version": "0.1.6",
+  "description": "Svelte 5 toast notification with CSP-compatible motion, contextual dismissal, and compact containment",
+  "type": "module",
+  "wornpage": {
+    "contractVersion": 2,
+    "delivery": "browser-bundle"
+  },
+  "scripts": {
+    "test": "bun test",
+    "build": "vite build"
+  },
+  "main": "./dist/worn-toast.js",
+  "svelte": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "svelte": "./src/index.ts",
+      "default": "./dist/worn-toast.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "peerDependencies": {
+    "svelte": "^5.56.8"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wornpage/wornpage.git",
+    "directory": "packages/toast"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.2.0",
+    "vite": "^8.1.5"
+  }
+}

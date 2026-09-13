@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>@wornpage/button demo</title>
+<style>
+  :root {
+    --font-typewriter: ui-monospace, "Cascadia Code", monospace;
+    --worn-text: #1f2933;
+    --worn-text-muted: #66717c;
+    --worn-surface: #fff;
+    --worn-bg-secondary: #e8e6e1;
+    --worn-border: #c8c5be;
+    --worn-radius: 6px;
+    --worn-accent: #0d9488;
+    --worn-accent-text: #fff;
+    --worn-danger-bg: #b9382f;
+    --worn-danger-border: #9f2f28;
+    --worn-danger-text: #fff;
+    --worn-warning-text: #8a6413;
+    --worn-warning-bg: #fff4cf;
+  }
+  body { margin: 0; padding: 32px; background: #f5f3ef; color: #1f2933; font-family: system-ui, sans-serif; }
+  main { max-width: 680px; margin: 0 auto; }
+  h1 { margin: 0 0 24px; font-size: 22px; }
+  h2 { margin: 22px 0 10px; font-size: 14px; }
+  .demo { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  worn-button { display: inline-block; }
+</style>
+</head>
+<body>
+<main>
+  <h1>@wornpage/button</h1>
+
+  <h2>Default</h2>
+  <div class="demo">
+    <worn-button label="Default"></worn-button>
+    <worn-button label="Small" size="sm"></worn-button>
+    <worn-button label="Disabled" disabled></worn-button>
+  </div>
+
+  <h2>Primary</h2>
+  <div class="demo">
+    <worn-button label="Primary" variant="primary"></worn-button>
+    <worn-button label="Small primary" variant="primary" size="sm"></worn-button>
+    <worn-button label="Disabled primary" variant="primary" disabled></worn-button>
+  </div>
+
+  <h2>Danger and warning</h2>
+  <div class="demo">
+    <worn-button label="Danger" variant="danger"></worn-button>
+    <worn-button label="Warning" variant="warning"></worn-button>
+  </div>
+
+  <h2>Link</h2>
+  <div class="demo"><worn-button label="Link button" variant="primary" href="#"></worn-button></div>
+</main>
+<script type="module" src="./dist/worn-button.js"></script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+import { describe, test, expect } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import type { ToastItem } from '../src/types';
+
+const toastSource = readFileSync(new URL('../src/Toast.svelte', import.meta.url), 'utf8').replace(/\r\n/gu, '\n');
+const indexSource = readFileSync(new URL('../src/index.ts', import.meta.url), 'utf8').replace(/\r\n/gu, '\n');
+const viteSource = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8').replace(/\r\n/gu, '\n');
+const demoSource = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const readmeSource = readFileSync(new URL('../README.md', import.meta.url), 'utf8').replace(/\r\n/gu, '\n');
+const packageManifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+
+function contrastRatio(foreground: string, background: string): number {
+	const luminance = (hex: string) => {
+		const channels = hex.match(/[a-f\d]{2}/giu)?.map(channel => Number.parseInt(channel, 16) / 255) ?? [];
+		const linear = channels.map(channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+		return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+	};
+	const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+	return (values[0] + 0.05) / (values[1] + 0.05);
+}
+
+function createToast(items: ToastItem[], item: Omit<ToastItem, 'id'>): ToastItem[] {
+	const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+	return [...items, { id, ...item }];
+}
+
+function dismissToast(items: ToastItem[], id: string): ToastItem[] {
+	return items.filter(t => t.id !== id);
+}
+
+describe('toast store logic', () => {
+	test('create adds toast with auto-id', () => {
+		const result = createToast([], { message: 'hello', kind: 'success' });
+		expect(result.length).toBe(1);
+		expect(result[0].message).toBe('hello');
+		expect(result[0].kind).toBe('success');
+		expect(result[0].id).toBeTruthy();
+	});
+
+	test('dismiss removes by id', () => {
+		const items: ToastItem[] = [
+			{ id: 'a', message: 'first' },
+			{ id: 'b', message: 'second' },
+		];
+		const result = dismissToast(items, 'a');
+		expect(result.length).toBe(1);
+		expect(result[0].id).toBe('b');
+	});
+
+	test('kind defaults to info', () => {
+		const result = createToast([], { message: 'test' });
+		expect(result[0].kind).toBeUndefined();
+	});
+});
+
+describe('toast component', () => {
+	test('keeps the Svelte root canonical while preserving browser delivery', () => {
+		expect(indexSource).toContain("export { default as Toast } from './Toast.svelte';");
+		expect(indexSource).toContain("export type { ToastItem, ToastProps } from './types.js';");
+		expect(indexSource).not.toContain('ToastElement');
+		expect(viteSource).toContain("entry: 'src/ToastElement.svelte'");
+	});
+
+	test('uses shared theme tokens with standalone fallbacks', () => {
+		expect(toastSource).toContain('var(--wrn-toast-bg, var(--worn-surface, #fdfbf7))');
+		expect(toastSource).toContain('var(--wrn-toast-text, var(--worn-text, #21322b))');
+		expect(toastSource).toContain('var(--wrn-toast-error-bg, var(--worn-danger-bg, var(--wrn-toast-bg, var(--worn-surface, #fdf0ef))))');
+		expect(toastSource).toContain('var(--wrn-toast-success-bg, var(--worn-success-bg, var(--wrn-toast-bg, var(--worn-surface, #edf9f0))))');
+	});
+
+	test('pairs status palettes through component and host base tokens', () => {
+		expect(toastSource).toContain('var(--wrn-toast-error-text, var(--worn-danger-text, var(--wrn-toast-text, var(--worn-text, #21322b))))');
+		expect(toastSource).toContain('var(--wrn-toast-success-text, var(--worn-success-text, var(--wrn-toast-text, var(--worn-text, #21322b))))');
+		expect(toastSource).not.toContain('var(--wrn-toast-error-bg, var(--worn-danger-bg, #fdf0ef))');
+		expect(toastSource).not.toContain('var(--wrn-toast-success-bg, var(--worn-success-bg, #edf9f0))');
+		expect(readmeSource).toContain('Status-specific background and text tokens are paired overrides');
+	});
+
+	test('keeps the no-token status defaults readable', () => {
+		expect(contrastRatio('#21322b', '#fdf0ef')).toBeGreaterThanOrEqual(4.5);
+		expect(contrastRatio('#21322b', '#edf9f0')).toBeGreaterThanOrEqual(4.5);
+	});
+
+	test('announces messages and uses a dedicated dismiss control', () => {
+		expect(toastSource).toContain("role={kind === 'error' ? 'alert' : 'status'}");
+		expect(toastSource).toContain("aria-live={kind === 'error' ? 'assertive' : 'polite'}");
+		expect(toastSource).toContain('aria-atomic="true"');
+		expect(toastSource).toContain("dismissLabel = 'Dismiss notification'");
+		expect(toastSource).toContain('class="wrn-toast-dismiss" onclick={dismiss} aria-label={dismissLabel}');
+		expect(toastSource).not.toContain('<button type="button" class="wrn-toast"');
+	});
+
+	test('contains hostile messages inside the notification', () => {
+		expect(toastSource).toContain('max-inline-size: 100%; min-inline-size: 0;');
+		expect(toastSource).toContain('overflow-wrap: anywhere;');
+	});
+
+	test('calls dismissal once when manual and timed dismissal overlap', () => {
+		expect(toastSource).toContain('if (dismissing) return;');
+		expect(toastSource).toContain('dismissing = true;');
+	});
+
+	test('completes reduced-motion dismissal without waiting for an absent animation', () => {
+		expect(toastSource).toContain("import { prefersReducedMotion } from 'svelte/motion';");
+		expect(toastSource).toContain('function completeDismissal()');
+		expect(toastSource).toMatch(/if \(prefersReducedMotion\.current\) \{\s*completeDismissal\(\);\s*return;\s*\}\s*setTimeout\(completeDismissal, EXIT_DURATION_MS\);/u);
+		expect(packageManifest.version).toBe('0.1.6');
+		expect(readmeSource).toContain('Reduced-motion dismissal completes immediately instead of waiting for an exit animation that is not rendered');
+	});
+
+	test('pauses and resumes timed dismissal while the toast is being used', () => {
+		expect(toastSource).toContain('function pauseAutoDismiss()');
+		expect(toastSource).toContain('function resumeAutoDismiss()');
+		expect(toastSource).toContain('onpointerenter={pauseAutoDismiss}');
+		expect(toastSource).toContain('onpointerleave={resumeAutoDismiss}');
+		expect(toastSource).toContain('onfocusin={pauseAutoDismiss}');
+		expect(toastSource).toContain('onfocusout={handleFocusOut}');
+		expect(toastSource).toContain('remainingDuration -= Date.now() - timerStartedAt;');
+		expect(toastSource).toContain('if (element.contains(event.relatedTarget as Node | null)) return;');
+	});
+
+	test('recovers visible keyboard focus before manual dismissal removes the toast', () => {
+		expect(toastSource).toContain("import { recoverKeyboardDismissFocus } from './focus-recovery';");
+		expect(toastSource).toContain('let toastRoot = $state<HTMLElement>();');
+		expect(toastSource).toMatch(/function dismiss\(event\?: MouseEvent\)[\s\S]*?recoverKeyboardDismissFocus\(event, toastRoot\);/u);
+		expect(toastSource).toContain('bind:this={toastRoot}');
+		expect(readmeSource).toContain('Keyboard dismissal moves focus to the next visible control');
+	});
+
+	test('uses the theme focus token before the accent fallback', () => {
+		expect(toastSource).toContain('var(--worn-focus, var(--worn-accent, currentColor))');
+	});
+
+	test('uses stylesheet motion that remains compatible with a strict CSP', () => {
+		expect(toastSource).not.toContain("from 'svelte/transition'");
+		expect(toastSource).toContain('@keyframes wrn-toast-enter');
+		expect(toastSource).toContain('class:is-dismissing={dismissing}');
+		expect(toastSource).toContain('@media (prefers-reduced-motion: reduce)');
+	});
+
+	test('keeps the dismiss action touch-safe', () => {
+		expect(toastSource).toContain('min-block-size: 44px');
+		expect(toastSource).toContain('@media (pointer: coarse)');
+		expect(toastSource).toContain('inline-size: 44px; block-size: 44px');
+	});
+});
+
+describe('browser demo', () => {
+	test('waits for an explicit variant choice without instructional copy', () => {
+		expect(demoSource).toContain('<h1>@wornpage/toast</h1>');
+		expect(demoSource).toContain('data-kind="info"');
+		expect(demoSource).toContain('src="./dist/worn-toast.js"');
+		expect(demoSource).not.toContain('Click to show toasts');
+		expect(demoSource).not.toContain('setTimeout');
+		expect(demoSource).not.toContain('window.show');
+	});
+
+	test('documents interaction-safe automatic dismissal', () => {
+		expect(readmeSource).toContain('Automatic dismissal pauses while the notification is hovered or contains keyboard focus');
+	});
+});

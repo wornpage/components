@@ -1,0 +1,42 @@
+{
+  "name": "wornpage-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@wornpage/alert": "workspace:*",
+    "@wornpage/async-states": "workspace:*",
+    "@wornpage/binary-controls": "workspace:*",
+    "@wornpage/button": "workspace:*",
+    "@wornpage/cmdk": "workspace:*",
+    "@wornpage/command-surfaces": "workspace:*",
+    "@wornpage/data-display": "workspace:*",
+    "@wornpage/date-input": "workspace:*",
+    "@wornpage/dialog": "workspace:*",
+    "@wornpage/disclosure": "workspace:*",
+    "@wornpage/drawer": "workspace:*",
+    "@wornpage/form-fields": "workspace:*",
+    "@wornpage/layout-surfaces": "workspace:*",
+    "@wornpage/multi-select": "workspace:*",
+    "@wornpage/navigation-surfaces": "workspace:*",
+    "@wornpage/receipt": "workspace:*",
+    "@wornpage/scenarios": "workspace:*",
+    "@wornpage/segmented-control": "workspace:*",
+    "@wornpage/select-card": "workspace:*",
+    "@wornpage/sidebar": "workspace:*",
+    "@wornpage/sync": "workspace:*",
+    "@wornpage/tabs": "workspace:*",
+    "@wornpage/theme": "workspace:*",
+    "@wornpage/toast": "workspace:*",
+    "@wornpage/undo": "workspace:*"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "svelte": "^5.0.0",
+    "vite": "^6.0.0"
+  }
+}

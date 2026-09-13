@@ -1,0 +1,9 @@
+node_modules/
+dist/*.map
+*.tsbuildinfo
+packages/*/dist/
+output/components/
+
+demo/dist/
+output/playwright/
+output/verify-catalog/

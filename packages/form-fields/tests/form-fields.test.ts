@@ -1,0 +1,161 @@
+import { describe, expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
+
+const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8').replace(/\r\n/gu, '\n');
+const input = read('../src/Input.svelte');
+const textarea = read('../src/Textarea.svelte');
+const select = read('../src/Select.svelte');
+const range = read('../src/Range.svelte');
+const inputElement = read('../src/InputElement.svelte');
+const textareaElement = read('../src/TextareaElement.svelte');
+const selectElement = read('../src/SelectElement.svelte');
+const rangeElement = read('../src/RangeElement.svelte');
+const index = read('../src/index.ts');
+const demo = read('../index.html');
+const packageJson = JSON.parse(read('../package.json'));
+const types = read('../src/types.ts');
+const readme = read('../README.md');
+
+describe('native field contract', () => {
+  test('preserves bindable values and forwards remaining native attributes', () => {
+    for (const source of [input, textarea, select]) {
+      expect(source).toContain("value = $bindable('')");
+      expect(source).toContain('{...rest}');
+    }
+    expect(input).toContain('{autocomplete}');
+    expect(input).toContain('{inputmode}');
+    expect(input).toContain('{readonly}');
+    expect(input).not.toContain("autocomplete = 'off'");
+    expect(textarea).toContain('{readonly}');
+    expect(select).toContain('disabled={option.disabled}');
+  });
+
+  test('makes each producer own its touch target and responsive containment', () => {
+    for (const [source, selector] of [
+      [input, '.worn-input'],
+      [textarea, '.worn-textarea'],
+      [select, '.worn-select'],
+    ] as const) {
+      expect(source).toContain('max-inline-size: 100%;');
+      expect(source).toContain('min-inline-size: 0;');
+      expect(source).toContain('touch-action: manipulation;');
+      expect(source).toMatch(/font-size: 14px;[\s\S]*@media \(pointer: coarse\)[\s\S]*font-size: 16px;/u);
+      expect(source).toMatch(
+        new RegExp(`@media \\(pointer: coarse\\) \\{\\s*${selector} \\{\\s*font-size: 16px;\\s*\\}\\s*\\}`, 'u'),
+      );
+    }
+    expect(input).toContain('min-block-size: 44px;');
+    expect(textarea).toContain('min-block-size: 72px;');
+    expect(select).toContain('min-block-size: 44px;');
+    expect(range).toContain('max-inline-size: 100%;');
+    expect(range).toContain('min-block-size: 44px;');
+    expect(range).toContain('min-inline-size: 44px;');
+    expect(range).toContain('touch-action: pan-y;');
+  });
+
+  test('keeps range semantics native and hostile values from consuming the track', () => {
+    expect(range).toContain('type="range"');
+    expect(range).toContain('bind:value');
+    expect(range).toContain("aria-label={label || 'Value'}");
+    expect(range).toContain('min-inline-size: 44px;');
+    expect(range).toContain('max-inline-size: 40%;');
+    expect(range).toContain('text-overflow: ellipsis;');
+    expect(range).toContain('@media (prefers-reduced-motion: reduce)');
+  });
+
+  test('paints the exact safe percentage without CSP-fragile styles or bucket classes', () => {
+    expect(packageJson.version).toBe('0.1.2');
+    expect(range).toContain('<svg class="worn-range-track" aria-hidden="true" focusable="false">');
+    expect(range).toContain('<rect class="worn-range-fill" width={`${percentage}%`} height="100%"></rect>');
+    expect(range).toContain('? Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100))');
+    expect(range).not.toContain('Math.round(((value - min) / (max - min)) * 100)');
+    expect(range).not.toContain('let bucket =');
+    expect(range).not.toMatch(/worn-range-fill-\d/u);
+    expect(range).not.toContain('style=');
+    expect(range).toContain('fill: var(--worn-range-fill, var(--_worn-range-default-fill));');
+    expect(range).toContain('--_worn-range-default-fill: color-mix(');
+    expect(range).toContain('@supports (color: color-mix(in srgb, black, white))');
+    expect(readme).toContain('exact CSP-safe percentage');
+    expect(readme).toContain('at least 3:1');
+  });
+
+  test('lets mapped numeric values expose one formatted visible and accessible value', () => {
+    expect(types).toContain('valueText?: string;');
+    expect(range).toContain("valueText = ''");
+    expect(range).toContain('let visibleValue = $derived(valueText || `${value}${suffix}`);');
+    expect(range).toContain('aria-valuetext={valueText || undefined}');
+    expect(rangeElement).toContain("valueText: { attribute: 'value-text', reflect: true, type: 'String' }");
+    expect(rangeElement).toContain('{valueText}');
+    expect(readme).toContain('`valueText`');
+  });
+});
+
+describe('theme and state behavior', () => {
+  test('uses one semantic focus token while preserving the range override', () => {
+    const focusToken = 'var(--worn-field-focus, var(--worn-focus, var(--worn-text, #21322b)))';
+    for (const source of [input, textarea, select]) {
+      expect(source).toContain(`outline: 2px dashed ${focusToken};`);
+    }
+    expect(range).toContain(`outline: 2px dashed var(--worn-range-focus, ${focusToken});`);
+    expect(readme).toContain('`--worn-field-focus`');
+    expect(readme).toContain('`--worn-range-focus`');
+  });
+
+  test('uses a theme-derived boundary and select arrow', () => {
+    for (const source of [input, textarea, select]) {
+      expect(source).toContain('--worn-field-boundary: color-mix(');
+      expect(source).toContain('border: 1px solid var(--worn-field-boundary);');
+      expect(source).toContain(':focus-visible');
+      expect(source).toContain('@media (prefers-reduced-motion: reduce)');
+      expect(source).toContain('transition: none;');
+    }
+    expect(range).toContain('var(--worn-border, #d8d2c8)');
+    expect(range).toContain('var(--worn-accent, #0f766e)');
+    expect(range).toContain('var(--worn-text-muted, #506058)');
+    expect(select).toContain('linear-gradient(45deg, transparent 50%, currentColor 50%)');
+    expect(select).not.toContain('data:image/svg+xml');
+  });
+
+  test('keeps placeholder, read-only, and disabled states explicit', () => {
+    for (const source of [input, textarea]) {
+      expect(source).toContain('::placeholder');
+      expect(source).toContain('opacity: 1;');
+      expect(source).toContain(':read-only:not(:disabled)');
+    }
+    for (const source of [input, textarea, select]) {
+      expect(source).toContain('-webkit-text-fill-color: var(--worn-text-muted);');
+      expect(source).toContain('cursor: not-allowed;');
+    }
+  });
+});
+
+describe('delivery contract', () => {
+  test('exports all direct Svelte components and one browser bundle', () => {
+    expect(index).toContain("export { default as Input } from './Input.svelte';");
+    expect(index).toContain("export { default as Textarea } from './Textarea.svelte';");
+    expect(index).toContain("export { default as Select } from './Select.svelte';");
+    expect(index).toContain("export { default as Range } from './Range.svelte';");
+    expect(packageJson.wornpage).toEqual({ contractVersion: 2, delivery: 'browser-bundle' });
+    expect(packageJson.main).toBe('./dist/worn-form-fields.js');
+    expect(demo).toContain('src="./dist/worn-form-fields.js"');
+    expect(demo).toContain('<worn-range aria-label="Progress"');
+  });
+
+  test('registers accessible custom elements with typed public properties', () => {
+    expect(inputElement).toContain("tag: 'worn-input'");
+    expect(textareaElement).toContain("tag: 'worn-textarea'");
+    expect(selectElement).toContain("tag: 'worn-select'");
+    expect(rangeElement).toContain("tag: 'worn-range'");
+    for (const source of [inputElement, textareaElement, selectElement]) {
+      expect(source).toContain("ariaLabel: { attribute: 'aria-label'");
+      expect(source).toContain("$derived(ariaLabel || host.getAttribute('aria-label') || '')");
+      expect(source).toContain('(host as HTMLElement & { value: string }).value =');
+      expect(source).toContain('max-inline-size: 100%;');
+      expect(source).toContain('min-inline-size: 0;');
+    }
+    expect(selectElement).toContain("options: { type: 'Array' }");
+    expect(rangeElement).toContain("value: { reflect: true, type: 'Number' }");
+    expect(rangeElement).toContain("valueText: { attribute: 'value-text', reflect: true, type: 'String' }");
+    expect(rangeElement).toContain("ariaLabel: { attribute: 'aria-label'");
+  });
+});

@@ -1,0 +1,6 @@
+node_modules/
+.wrangler/
+.playwright-cli/
+dist/*.map
+.DS_Store
+*.local

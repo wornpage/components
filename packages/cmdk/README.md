@@ -1,0 +1,98 @@
+# @wornpage/cmdk
+
+> Part of **[Wornpage Components](https://github.com/wornpage/wornpage#component-library)**.
+> [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/wornpage/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/wornpage)
+
+Svelte 5 command palette component. Fuzzy search, keyboard nav, zero dependencies.
+
+<!-- wornpage-delivery:v2 browser-bundle -->
+## Delivery
+
+`src/` is the canonical implementation and the Svelte consumer entry. `dist/` is a generated browser bundle; run `bun run build` after source changes and never edit `dist/` directly.
+
+Repository text is checked out as LF through `.gitattributes`, so generated output is byte-stable across Windows and Linux.
+
+The shared [component delivery contract](https://github.com/wornpage/wornpage/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.
+<!-- /wornpage-delivery -->
+
+## Features
+
+- 🔍 Fuzzy search (subsequence match on label, hint, keywords)
+- ⌨ ArrowUp/Down, Enter, Escape — full keyboard support
+- 📂 Grouped results via `group` field on items
+- 🎯 Native `<dialog>` focus trap, close control, and backdrop dismissal
+- 🎨 CSS custom properties for theming
+- 🪶 Zero dependencies (Svelte 5 peer only)
+
+## Source use
+
+This package is not published to npm. Check out this repository at a reviewed commit, install its
+dependencies from `bun.lock`, and consume `src/index.ts` through a local workspace alias. The
+`@wornpage/cmdk` imports below assume that local alias; they do not resolve from the public npm
+registry.
+
+## Usage
+
+```svelte
+<script lang="ts">
+  import { Cmdk } from '@wornpage/cmdk';
+  import type { CmdkItem } from '@wornpage/cmdk';
+
+  let palette: { open(): void };
+
+  const items: CmdkItem[] = [
+    { id: 'home', label: 'Go to Home', hint: 'Screen', onSelect: () => goto('/') },
+    { id: 'settings', label: 'Open Settings', hint: 'Screen', group: 'Screens', onSelect: () => goto('/settings') },
+    { id: 'theme', label: 'Dark mode', keywords: ['night', 'dark'], group: 'Actions', onSelect: () => applyTheme('dark') },
+  ];
+</script>
+
+<button onclick={() => palette.open()}>Open palette</button>
+
+<Cmdk bind:this={palette} items={items} placeholder="Search…" />
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `items` | `CmdkItem[]` | required | Items to search |
+| `placeholder` | `string` | `'Search…'` | Input placeholder |
+| `onclose` | `() => void` | — | Called when dialog closes |
+
+### CmdkItem
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique identifier |
+| `label` | `string` | Primary search text |
+| `hint` | `string` (optional) | Secondary text shown right-aligned |
+| `keywords` | `string[]` (optional) | Extra search terms |
+| `group` | `string` (optional) | Group label for sectioning results |
+| `onSelect` | `() => void` | Called when item is selected |
+
+### Exposed methods
+
+Through `bind:this`:
+- `open()` — open the palette dialog
+
+The search input stays at 16px and the dialog entrance uses only opacity and vertical translation, so iOS sees the native-size input when `open()` focuses it and does not zoom the page. The automatically focused search input has a contained, theme-safe visible outline. The close control and result rows meet 44px touch-target sizing on coarse pointers. Escape, backdrop dismissal, the close control, and selection all converge on one native dialog close event, then focus returns to the control that opened the palette. Palette motion is disabled when the user prefers reduced motion.
+
+## Theming
+
+```css
+:root {
+  --cmdk-surface: #fdfbf7;
+  --cmdk-text: #21322b;
+  --cmdk-text-muted: #63746a;
+  --cmdk-border: #e2ddd5;
+  --cmdk-selected-bg: #d7efe7;
+  --cmdk-focus: #0f766e;
+  --cmdk-radius: 8px;
+  --cmdk-radius-sm: 6px;
+}
+```
+
+## License
+
+MIT

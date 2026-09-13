@@ -1,0 +1,660 @@
+import { describe, test, expect } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import { filterNavChildren, filterNavItems, filterNavLinks, hasNavFilterResults, shouldClearNavFilter, shouldOpenNavSection } from '../src/filter.js';
+import { nextNavFocusIndex } from '../src/keyboard.js';
+import { assertSafeNavigationHref, isSafeNavigationHref, shouldInterceptNavigationClick, validateNavItems } from '../src/navigation.js';
+import { assertNavIcon } from '../src/nav-icon.js';
+import { visibleNavItems } from '../src/visibility.js';
+import { filterTransientNavItems, selectCurrentPagePlacement, shouldRenderCanonicalNavItem } from '../src/shortcuts.js';
+import * as shortcutHelpers from '../src/shortcuts.js';
+
+const sidebarSource = readFileSync(new URL('../src/Sidebar.svelte', import.meta.url), 'utf8');
+const itemSource = readFileSync(new URL('../src/SidebarItem.svelte', import.meta.url), 'utf8');
+const navIconSource = readFileSync(new URL('../src/NavIcon.svelte', import.meta.url), 'utf8');
+const elementSource = readFileSync(new URL('../src/SidebarElement.svelte', import.meta.url), 'utf8');
+const elementsEntrySource = readFileSync(new URL('../src/elements.ts', import.meta.url), 'utf8').replace(/\r\n/gu, '\n');
+const indexSource = readFileSync(new URL('../src/index.ts', import.meta.url), 'utf8');
+const viteSource = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8');
+const demoSource = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const readmeSource = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
+const packageManifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+const rawHtmlDirective = `{${'@'}html`;
+
+describe('package delivery', () => {
+	test('declares the next browser-bundle contract revision', () => {
+		expect(packageManifest.name).toBe('@wornpage/sidebar');
+		expect(packageManifest.version).toBe('0.1.8');
+		expect(packageManifest.wornpage).toEqual({ contractVersion: 2, delivery: 'browser-bundle' });
+		expect(packageManifest.main).toBe('./dist/worn-sidebar.js');
+		expect(packageManifest.svelte).toBe('./src/index.ts');
+	});
+
+	test('describes the current source-only delivery truthfully', () => {
+		expect(readmeSource).toContain('This package is not published to npm.');
+		expect(readmeSource).not.toContain('bun add @wornpage/sidebar');
+		expect(readmeSource).not.toContain('npm add @wornpage/sidebar');
+	});
+});
+
+describe('current page placement', () => {
+	const shortcuts = [
+		{ id: 'review', href: '/review', label: 'Review', attention: true },
+		{ id: 'inbox', href: '/inbox', label: 'Inbox', attention: true },
+		{ id: 'tasks', href: '/tasks', label: 'Tasks', attention: true },
+	{ id: 'calendar', href: '/calendar', label: 'Calendar', attention: true },
+	];
+	const attentionIds = new Set(filterTransientNavItems(shortcuts, '/review', 3).map((item) => item.id));
+
+	test('excludes the active route from every transient group before limiting', () => {
+		expect(filterTransientNavItems(shortcuts, '/review', 3).map((item) => item.href)).toEqual([
+			'/inbox',
+			'/tasks',
+			'/calendar',
+		]);
+	});
+
+	test('backfills a transient group after excluding the active item', () => {
+		expect(filterTransientNavItems(shortcuts, '/inbox', 3).map((item) => item.href)).toEqual([
+			'/review',
+			'/tasks',
+			'/calendar',
+		]);
+	});
+
+	test('selects the active item from exactly one durable group', () => {
+		expect(selectCurrentPagePlacement(shortcuts, '/review', new Set())).toEqual({
+			item: shortcuts[0],
+			group: 'canonical',
+		});
+		expect(selectCurrentPagePlacement(shortcuts, '/review', new Set(['review']))).toEqual({
+			item: shortcuts[0],
+			group: 'pinned',
+		});
+		expect(selectCurrentPagePlacement(shortcuts, '/missing', new Set(['review']))).toBeNull();
+	});
+
+	test('does not change keyboard or search behavior for rendered navigation', () => {
+		expect(nextNavFocusIndex('ArrowDown', 1, 3)).toBe(2);
+		expect(filterNavItems(shortcuts, 'review').map((item) => item.id)).toEqual(['review']);
+	});
+
+	test('uses the shared placement contract and keeps transient links inactive', () => {
+		expect(sidebarSource).toContain("import { filterTransientNavItems, orderedFavoriteItems, selectCurrentPagePlacement, shouldRenderCanonicalNavItem } from './shortcuts.js';");
+		expect(sidebarSource).toContain('const currentPage = $derived(selectCurrentPagePlacement(flatItems, activeHref, favorites));');
+		expect(sidebarSource).toContain("@render navLink(item, isCurrentPage(item, 'pinned'))");
+		expect(sidebarSource.match(/isCurrentPage\((?:child|item), 'canonical'\)/gu)?.length).toBe(2);
+		expect(sidebarSource.match(/@render navLink\(item, false\)/gu)?.length).toBe(3);
+		expect(demoSource).toContain("sb.activehref = '#review';");
+		expect(demoSource).toContain('sb.activehref = e.detail.href;');
+	});
+
+	test('uses production canonical visibility for empty, whitespace, matching, active, and favorite states', () => {
+		const review = shortcuts[0];
+		const calendar = shortcuts[3];
+		const normalizedWhitespace = '   '.trim();
+		expect(shouldRenderCanonicalNavItem(review, attentionIds, '', new Set())).toBe(true);
+		expect(shouldRenderCanonicalNavItem(calendar, attentionIds, '', new Set())).toBe(false);
+		expect(shouldRenderCanonicalNavItem(calendar, attentionIds, normalizedWhitespace, new Set())).toBe(false);
+		expect(shouldRenderCanonicalNavItem(review, attentionIds, 'review', new Set())).toBe(true);
+		expect(shouldRenderCanonicalNavItem(calendar, attentionIds, 'calendar', new Set())).toBe(true);
+		expect(shouldRenderCanonicalNavItem(review, attentionIds, '', new Set(['review']))).toBe(false);
+		expect(sidebarSource).toContain('const normalizedFilterText = $derived(filterText.trim());');
+		expect(sidebarSource.match(/shouldRenderCanonicalNavItem\((?:i|c), attentionIds, normalizedFilterText, favorites\)/gu)?.length).toBe(2);
+	});
+});
+
+describe('filter control', () => {
+	test('owns one accessible clear affordance', () => {
+		expect(sidebarSource).toContain('type="text" role="searchbox" inputmode="search" autocomplete="off"');
+		expect(sidebarSource).not.toContain('type="search"');
+		expect(sidebarSource.match(/class="worn-filter-clear"/gu)?.length).toBe(1);
+		expect(sidebarSource).toContain('aria-label="Clear filter"');
+		expect(sidebarSource).toContain('orderedFavoriteItems(flatItems, favorites).filter(i => matchesNavItem(i, normalizedFilterText))');
+	});
+
+	test('owns an opaque, theme-aware placeholder color', () => {
+		expect(sidebarSource).toContain('.worn-filter-input::placeholder');
+		expect(sidebarSource).toContain('color: var(--worn-sidebar-text-muted, var(--worn-text-muted, #666));');
+		expect(sidebarSource).toContain('opacity: 1;');
+	});
+});
+
+describe('danger badge theming', () => {
+	test('uses independent semantic background and foreground fallback chains', () => {
+		expect(sidebarSource).toContain('background: var(--worn-sidebar-danger, var(--worn-danger-badge-bg, #e74c3c));');
+		expect(sidebarSource).toContain('color: var(--worn-sidebar-danger-text, var(--worn-danger-badge-text, #fff));');
+		expect(readmeSource).toContain('--worn-sidebar-danger: #e74c3c;');
+		expect(readmeSource).toContain('--worn-sidebar-danger-text: #fff;');
+	});
+});
+
+describe('collapsed web component', () => {
+	test('fits the available consumer width after borders and scrollbar gutters', () => {
+		const sidebarRule = sidebarSource.match(/\.worn-sidebar \{([^}]+)\}/u)?.[1];
+		expect(sidebarRule).toContain('max-inline-size: 100%;');
+	});
+
+	test('owns a visual collapsed state without removing link names', () => {
+		expect(sidebarSource).toContain('title={collapsed ? item.label : undefined}');
+		expect(sidebarSource).toContain('.worn-sidebar.is-collapsed {');
+		expect(sidebarSource).toContain('inline-size: var(--worn-sidebar-collapsed-width, 72px);');
+		expect(sidebarSource).toContain('overflow-x: clip;');
+		expect(sidebarSource).not.toContain('overflow-x: hidden;');
+		expect(sidebarSource).toContain('.worn-sidebar.is-collapsed .worn-nav-label {');
+		expect(sidebarSource).toContain('clip-path: inset(50%);');
+		expect(sidebarSource).toContain('inline-size: var(--worn-sidebar-collapsed-item-size, 44px);');
+		expect(sidebarSource).toContain('margin-inline: auto;');
+		expect(sidebarSource).toContain('@media (prefers-reduced-motion: reduce)');
+	});
+
+	test('sizes the custom-element host and exposes demo control state', () => {
+		expect(elementSource).toContain('class="worn-sidebar-element" class:is-collapsed={collapsed}');
+		expect(elementSource).toContain('inline-size: var(--worn-sidebar-width, 240px);');
+		expect(elementSource).toContain('.worn-sidebar-element.is-collapsed');
+		expect(elementSource).toContain('inline-size: var(--worn-sidebar-collapsed-width, 72px);');
+		expect(demoSource).toContain('aria-controls="sidebar-demo" aria-pressed="false">Collapse sidebar</button>');
+		expect(demoSource).toContain("collapseButton.setAttribute('aria-pressed', String(collapsed));");
+		expect(demoSource).toContain("collapseButton.textContent = collapsed ? 'Expand sidebar' : 'Collapse sidebar';");
+	});
+
+});
+
+describe('standalone demo', () => {
+	test('keeps the component and controls while removing documentation panels', () => {
+		expect(demoSource).toContain('<h1>@wornpage/sidebar</h1>');
+		expect(demoSource).toContain('<h2>Controls</h2>');
+		expect(demoSource).not.toContain('Standalone web component');
+		expect(demoSource).not.toContain('How to use');
+		expect(demoSource).not.toContain('Bundle size');
+	});
+});
+
+describe('consumer layout', () => {
+	test('lets expanded rows fill available width and bounds collapsed rows away from scrollbars', () => {
+		expect(sidebarSource).toContain('.worn-nav-row > .worn-nav-item {');
+		expect(sidebarSource).toContain('inline-size: auto;');
+		expect(sidebarSource).not.toContain('.worn-nav-row > .worn-nav-item { box-sizing: border-box; width: 100%; }');
+	});
+});
+
+describe('package entrypoints', () => {
+	test('keeps the custom-element wrapper out of the Svelte consumer entry', () => {
+		expect(indexSource).toContain("export { default as Sidebar } from './Sidebar.svelte';");
+		expect(indexSource).not.toContain('SidebarElement');
+		expect(elementsEntrySource).toBe("import './SidebarElement.svelte';\n");
+		expect(viteSource).toContain("entry: 'src/elements.ts'");
+		expect(viteSource).toContain("customElement: filename.endsWith('Element.svelte')");
+		expect(viteSource).not.toContain('customElement: true');
+	});
+
+	test('uses the Svelte 5 click property while preserving native link gestures', () => {
+		expect(itemSource).toContain('function handleClick(event: MouseEvent)');
+		expect(itemSource).toContain('if (!shouldInterceptNavigationClick(event, Boolean(onclick))) return;');
+		expect(itemSource).toContain('event.preventDefault();');
+		expect(itemSource).toContain('onclick?.(event);');
+		expect(itemSource).toContain('onclick={handleClick}');
+		expect(itemSource).not.toContain('on:click');
+	});
+});
+
+describe('native link interactions', () => {
+	const click = (overrides: Partial<Parameters<typeof shouldInterceptNavigationClick>[0]> = {}) => ({
+		altKey: false,
+		button: 0,
+		ctrlKey: false,
+		defaultPrevented: false,
+		metaKey: false,
+		shiftKey: false,
+		...overrides,
+	});
+
+	test('intercepts only a plain primary click with a navigation handler', () => {
+		expect(shouldInterceptNavigationClick(click(), true)).toBe(true);
+		expect(shouldInterceptNavigationClick(click(), false)).toBe(false);
+		expect(shouldInterceptNavigationClick(click({ defaultPrevented: true }), true)).toBe(false);
+		expect(shouldInterceptNavigationClick(click({ button: 1 }), true)).toBe(false);
+	});
+
+	test('leaves modified anchor gestures to the browser', () => {
+		for (const modifier of ['altKey', 'ctrlKey', 'metaKey', 'shiftKey'] as const) {
+			expect(shouldInterceptNavigationClick(click({ [modifier]: true }), true)).toBe(false);
+		}
+		expect(sidebarSource).toContain('if (!href || !shouldInterceptNavigationClick(e, Boolean(onnavigate))) return;');
+		expect(sidebarSource).toMatch(/e\.preventDefault\(\);\s*onnavigate\?\.\(href\);/u);
+	});
+});
+
+describe('navigation target security', () => {
+	test('accepts relative links and the explicitly supported absolute schemes', () => {
+		for (const href of [
+			'#review',
+			'/review?tab=summary',
+			'./review',
+			'../review',
+			'review',
+			'?tab=summary',
+			'https://example.com/review',
+			'mailto:team@example.com',
+			'tel:+15551234567',
+		]) {
+			expect(isSafeNavigationHref(href)).toBe(true);
+			expect(assertSafeNavigationHref(href)).toBe(href);
+		}
+	});
+
+	test('rejects active-content, downgrade, network-path, and obfuscated targets', () => {
+		for (const href of [
+			'javascript:alert(1)',
+			'JaVaScRiPt:alert(1)',
+			'data:text/html,<script>alert(1)</script>',
+			'vbscript:msgbox(1)',
+			'http://example.com',
+			'file:///etc/passwd',
+			'//example.com/review',
+			'\\\\example.com\\review',
+			' javascript:alert(1)',
+			'java\tscript:alert(1)',
+			'java\nscript:alert(1)',
+			'java\u200bscript:alert(1)',
+		]) {
+			expect(isSafeNavigationHref(href)).toBe(false);
+			expect(() => assertSafeNavigationHref(href)).toThrow();
+		}
+	});
+
+	test('validates every nested item before Sidebar rendering', () => {
+		const items = [{
+			id: 'tools',
+			label: 'Tools',
+			children: [{ id: 'unsafe', label: 'Unsafe', href: 'javascript:alert(1)' }],
+		}];
+
+		expect(() => validateNavItems(items)).toThrow('items[0].children[0].href');
+		expect(sidebarSource).toContain('const validatedItems = $derived(validateNavItems(items));');
+		expect(sidebarSource).toContain('visibleNavItems(validatedItems, hiddenItems)');
+		expect(itemSource).toContain("assertSafeNavigationHref(href, 'SidebarItem href')");
+		expect(elementSource).toContain('<Sidebar');
+	});
+});
+
+describe('structured icon security', () => {
+	test('accepts only the supported SVG primitive model', () => {
+		const icon = {
+			viewBox: '0 0 24 24',
+			shapes: [
+				{ type: 'path', d: 'M3 9l9-7 9 7' },
+				{ type: 'circle', cx: 12, cy: 12, r: 3 },
+				{ type: 'line', x1: 1, y1: 2, x2: 3, y2: 4 },
+				{ type: 'polyline', points: '9 18 15 12 9 6' },
+				{ type: 'polygon', points: '12 2 22 21 2 21' },
+				{ type: 'rect', x: 2, y: 3, width: 10, height: 8, rx: 2 },
+			],
+		};
+
+		expect(assertNavIcon(icon)).toBe(icon);
+		expect(validateNavItems([{ id: 'home', label: 'Home', icon }])[0]?.icon).toBe(icon);
+	});
+
+	test('rejects legacy raw markup and unsupported fields or elements', () => {
+		expect(() => validateNavItems([{ id: 'home', label: 'Home', icon: '<path onload="alert(1)" />' }])).toThrow('structured icon object');
+		expect(() => assertNavIcon({ shapes: [{ type: 'image', href: 'https://example.com/icon.svg' }] })).toThrow('supported SVG primitive');
+		expect(() => assertNavIcon({ shapes: [{ type: 'foreignObject' }] })).toThrow('supported SVG primitive');
+		expect(() => assertNavIcon({ shapes: [{ type: 'path', d: 'M0 0', onload: 'alert(1)' }] })).toThrow('onload is not a supported icon field');
+		expect(() => assertNavIcon({ shapes: [{ type: 'path', d: 'M0 0', href: 'javascript:alert(1)' }] })).toThrow('href is not a supported icon field');
+		expect(() => assertNavIcon({ shapes: [{ type: 'path', d: 'M0 0', 'xlink:href': 'data:text/html,unsafe' }] })).toThrow('xlink:href is not a supported icon field');
+		expect(() => assertNavIcon({ shapes: [{ type: 'path', d: 'M0 0', style: 'background:url(https://example.com/track)' }] })).toThrow('style is not a supported icon field');
+		expect(() => assertNavIcon({ shapes: [{ type: 'path', d: 'M0 0', fill: 'url(https://example.com/track)' }] })).toThrow('fill is not a supported icon field');
+		expect(() => assertNavIcon({ shapes: [{ type: '__proto__' }] })).toThrow('supported SVG primitive');
+	});
+
+	test('renders attributes through Svelte without a raw HTML path', () => {
+		for (const source of [sidebarSource, itemSource, navIconSource]) {
+			expect(source).not.toContain(rawHtmlDirective);
+		}
+		expect(navIconSource).toContain("{#if shape.type === 'path'}");
+		expect(navIconSource).toContain('<path d={shape.d}/>');
+		expect(navIconSource).not.toContain('{...shape}');
+		expect(navIconSource).not.toContain('href={');
+		expect(navIconSource).not.toContain('style={');
+		expect(navIconSource).not.toContain('fill={');
+		expect(sidebarSource).toContain('<NavIcon icon={item.icon}/>');
+		expect(itemSource).toContain('<NavIconView {icon}/>');
+		expect(demoSource).not.toMatch(/icon:\s*['"]</u);
+		expect(readmeSource).toContain('raw SVG/HTML strings are rejected');
+	});
+});
+
+describe('keyboard navigation', () => {
+	test('moves through bounded rendered-link indexes', () => {
+		expect(nextNavFocusIndex('ArrowDown', -1, 4)).toBe(0);
+		expect(nextNavFocusIndex('ArrowDown', 1, 4)).toBe(2);
+		expect(nextNavFocusIndex('ArrowDown', 3, 4)).toBe(3);
+		expect(nextNavFocusIndex('ArrowUp', 2, 4)).toBe(1);
+		expect(nextNavFocusIndex('ArrowUp', 0, 4)).toBe(0);
+		expect(nextNavFocusIndex('Home', 3, 4)).toBe(0);
+		expect(nextNavFocusIndex('End', 0, 4)).toBe(3);
+	});
+
+	test('ignores non-navigation keys and empty link sets', () => {
+		expect(nextNavFocusIndex('Enter', 0, 4)).toBeNull();
+		expect(nextNavFocusIndex('ArrowDown', -1, 0)).toBeNull();
+	});
+
+	test('continues handling keys after focus enters rendered navigation', () => {
+		expect(sidebarSource).toMatch(/onclick=\{\(e\) => handleNav\(e, item\.href\)\}\s+onkeydown=\{handleKeydown\}/u);
+		expect(sidebarSource).toContain('<nav class="worn-nav" bind:this={navEl}>');
+		expect(sidebarSource).toContain('if (e.isComposing || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;');
+		expect(sidebarSource).toContain("if (e.currentTarget === filterInput && (e.key === 'Home' || e.key === 'End')) return;");
+		expect(sidebarSource).toContain("querySelectorAll<HTMLAnchorElement>('[data-nav-id]')");
+		expect(sidebarSource).toContain('links.findIndex((link) => link === document.activeElement)');
+		expect(sidebarSource).toContain("else if (e.key === ' ' && currentIndex >= 0)");
+		expect(sidebarSource).not.toContain('allVisible');
+		expect(sidebarSource).not.toContain('focusedIndex');
+	});
+});
+
+describe('pinned reorder controls', () => {
+	test('renders persisted order and recovers the moved control', () => {
+		const orderedFavoriteItems = Reflect.get(shortcutHelpers, 'orderedFavoriteItems');
+		expect(typeof orderedFavoriteItems).toBe('function');
+		if (typeof orderedFavoriteItems === 'function') {
+			const items = [
+				{ id: 'review', href: '/review', label: 'Review' },
+				{ id: 'work', href: '/work', label: 'Work' },
+				{ id: 'next', href: '/next', label: 'Next' }
+			];
+			expect(orderedFavoriteItems(items, new Set(['work', 'missing', 'review'])).map((item: { id: string }) => item.id)).toEqual(['work', 'review']);
+		}
+		expect(sidebarSource).toContain("import { tick } from 'svelte';");
+		expect(sidebarSource).toContain("import { filterTransientNavItems, orderedFavoriteItems, selectCurrentPagePlacement, shouldRenderCanonicalNavItem } from './shortcuts.js';");
+		expect(sidebarSource).toContain('orderedFavoriteItems(flatItems, favorites).filter(i => matchesNavItem(i, normalizedFilterText))');
+		expect(sidebarSource).toContain('async function moveFavorite(id: string, delta: number)');
+		expect(sidebarSource).toContain('await tick();');
+		expect(sidebarSource).toContain('data-reorder-delta="-1"');
+		expect(sidebarSource).toContain('data-reorder-delta="1"');
+		expect(sidebarSource).toContain("nextControl?.focus({ preventScroll: true });");
+		expect(readmeSource).toContain('Saved pin order drives rendering');
+		expect(readmeSource).not.toContain('Drag-to-reorder pinned items');
+	});
+
+	test('keeps buttons outside the navigation link', () => {
+		const start = sidebarSource.indexOf('{#snippet navLink');
+		const end = sidebarSource.indexOf('{/snippet}', start);
+		const snippet = sidebarSource.slice(start, end);
+		const anchorClose = snippet.indexOf('</a>');
+		const firstButton = snippet.indexOf('class="worn-reorder-btn"');
+
+		expect(snippet).toContain('<div class="worn-nav-row" class:has-reorder={favorites.has(item.id) && favItems.length > 1}>');
+		expect(anchorClose).toBeGreaterThan(0);
+		expect(firstButton).toBeGreaterThan(anchorClose);
+		expect(snippet).not.toContain('>▲<');
+		expect(snippet).not.toContain('>▼<');
+	});
+
+	test('names visible icon controls and reserves their row space', () => {
+		expect(sidebarSource).toContain('title="Move up" aria-label={`Move ${item.label} up`}');
+		expect(sidebarSource).toContain('title="Move down" aria-label={`Move ${item.label} down`}');
+		expect(sidebarSource).toContain('<svg viewBox="0 0 24 24" aria-hidden="true">');
+		expect(sidebarSource).toContain('.worn-nav-row.has-reorder > .worn-nav-item { padding-inline-end: 72px; }');
+		expect(sidebarSource).toContain('height: 28px;');
+		expect(sidebarSource).toContain('width: 28px;');
+		expect(sidebarSource).toContain('.worn-reorder-btn:focus-visible');
+		expect(sidebarSource).not.toContain('opacity: 0; transition: opacity');
+	});
+});
+
+describe('keyboard focus', () => {
+	test('owns one high-contrast focus token across every sidebar control', () => {
+		const focusToken = 'var(--worn-sidebar-focus, var(--worn-focus, var(--worn-text, #21322b)))';
+		expect(sidebarSource.match(new RegExp(`outline: 2px dashed ${focusToken.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g'))).toHaveLength(4);
+		expect(sidebarSource).toContain('.worn-filter-input:focus-visible');
+		expect(sidebarSource).not.toContain('.worn-filter-input:focus {');
+		expect(sidebarSource).toContain('.worn-nav-item:focus-visible');
+		expect(sidebarSource).toContain('.worn-sidebar-restore:focus-visible');
+		expect(sidebarSource).toContain('.worn-reorder-btn:focus-visible');
+		expect(readFileSync(new URL('../README.md', import.meta.url), 'utf8')).toContain('--worn-sidebar-focus');
+	});
+
+	test('prevents filter focus zoom while keeping coarse-pointer targets touch-safe', () => {
+		const coarsePointerBlock = sidebarSource.match(/@media \(pointer: coarse\) \{([\s\S]*?)\n\t\}/u)?.[1];
+
+		expect(sidebarSource).toContain('font: inherit; font-size: 12px;');
+		expect(coarsePointerBlock).toMatch(/\.worn-filter-input \{\s*font-size: 16px;\s*\}/u);
+		expect(coarsePointerBlock).toMatch(/\.worn-filter-input,[\s\S]*?\.worn-filter-clear,[\s\S]*?\.worn-nav-item,[\s\S]*?\.worn-sidebar-restore,[\s\S]*?\.worn-reorder-btn,[\s\S]*?\.worn-context-menu button \{[\s\S]*?min-block-size: 44px;/u);
+		expect(coarsePointerBlock).toMatch(/\.worn-reorder-btn \{\s*min-inline-size: 44px;\s*\}/u);
+		expect(coarsePointerBlock).toMatch(/\.worn-nav-row\.has-reorder > \.worn-nav-item \{[\s\S]*?padding-inline-end: 104px;/u);
+		expect(readmeSource).toContain('44px square targets on coarse pointers while retaining 28px desktop controls');
+	});
+});
+
+describe('context menu', () => {
+	test('uses a real control for backdrop dismissal', () => {
+		expect(sidebarSource).toContain('<button type="button" class="worn-menu-backdrop" aria-label="Close menu" onclick={closeContextMenu}></button>');
+		expect(sidebarSource).not.toContain('<div class="worn-menu-backdrop"');
+		expect(sidebarSource).toContain('Hide from sidebar');
+		expect(sidebarSource).toContain('Reset shortcuts');
+		expect(sidebarSource).not.toContain('📌');
+		expect(sidebarSource).not.toContain('👁');
+		expect(sidebarSource).not.toContain('🔄');
+	});
+});
+
+describe('hidden navigation', () => {
+	test('removes hidden routes and any group left without visible children', () => {
+		const items = [
+			{ id: 'today', label: 'Today', children: [{ id: 'home', label: 'Home' }, { id: 'review', label: 'Review' }] },
+			{ id: 'settings', label: 'Settings' }
+		];
+
+		expect(visibleNavItems(items, new Set(['home']))).toEqual([
+			{ id: 'today', label: 'Today', children: [{ id: 'review', label: 'Review' }] },
+			{ id: 'settings', label: 'Settings' }
+		]);
+		expect(visibleNavItems(items, new Set(['home', 'review']))).toEqual([{ id: 'settings', label: 'Settings' }]);
+	});
+
+	test('keeps the canonical hierarchy untouched when nothing is hidden', () => {
+		const items = [{ id: 'home', label: 'Home' }];
+		expect(visibleNavItems(items, new Set())).toEqual(items);
+	});
+});
+
+function flatten(items: { id: string; children?: any[] }[]): { id: string }[] {
+  const result: { id: string }[] = [];
+  for (const item of items) {
+    result.push(item);
+    if (item.children) result.push(...flatten(item.children));
+  }
+  return result;
+}
+
+describe('flatten', () => {
+  test('flat list stays flat', () => {
+    const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    expect(flatten(items).map(i => i.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  test('nested items are flattened', () => {
+    const items = [
+      { id: 'a' },
+      { id: 'b', children: [{ id: 'b1' }, { id: 'b2' }] },
+      { id: 'c' },
+    ];
+    expect(flatten(items).map(i => i.id)).toEqual(['a', 'b', 'b1', 'b2', 'c']);
+  });
+});
+
+describe('filterNavItems', () => {
+	const items = [
+		{ id: 'today', label: 'Today', children: [{ id: 'home', label: 'Home' }, { id: 'review', label: 'Review' }] },
+		{ id: 'settings', label: 'Settings' },
+	];
+
+	test('empty query returns all', () => {
+		expect(filterNavItems(items, '')).toEqual(items);
+	});
+
+	test('keeps a section when a child matches', () => {
+		expect(filterNavItems(items, 'h').map((item) => item.id)).toEqual(['today']);
+	});
+
+	test('case insensitive', () => {
+		expect(filterNavItems(items, 'SETTINGS').map((item) => item.id)).toEqual(['settings']);
+	});
+
+	test('matches non-visible search keywords', () => {
+		expect(filterNavItems([{ id: 'start', label: 'Start', keywords: ['Home'] }], 'h').map((item) => item.id)).toEqual(['start']);
+	});
+
+	test('no match returns empty', () => {
+		expect(filterNavItems(items, 'zzz')).toEqual([]);
+	});
+});
+
+describe('hasNavFilterResults', () => {
+	test('treats an empty or whitespace query as the normal navigation state', () => {
+		expect(hasNavFilterResults([], '')).toBe(true);
+		expect(hasNavFilterResults([], '   ')).toBe(true);
+	});
+
+	test('reports a matching child as a result', () => {
+		expect(hasNavFilterResults([{ id: 'today', label: 'Today', children: [{ id: 'home', label: 'Home' }] }], 'h')).toBe(true);
+	});
+
+	test('reports no result for an unmatched query', () => {
+		expect(hasNavFilterResults([{ id: 'today', label: 'Today' }], 'zzz')).toBe(false);
+	});
+});
+
+describe('filterNavLinks', () => {
+	const items = [
+		{ id: 'today', label: 'Today', children: [{ id: 'home', label: 'Home' }, { id: 'review', label: 'Review' }] },
+		{ id: 'settings', label: 'Settings' },
+	];
+
+	test('returns the matching child link instead of its section header', () => {
+		expect(filterNavLinks(items, 'h').map((item) => item.id)).toEqual(['home']);
+	});
+
+	test('keeps direct top-level links selectable', () => {
+		expect(filterNavLinks(items, 'set').map((item) => item.id)).toEqual(['settings']);
+	});
+
+	test('does not duplicate favorite links in the filtered navigation list', () => {
+		expect(filterNavLinks(items, 'h', new Set(['home'])).map((item) => item.id)).toEqual([]);
+	});
+
+	test('keeps keyword matches selectable', () => {
+		expect(filterNavLinks([{ id: 'start', label: 'Start', keywords: ['Home'] }], 'home').map((item) => item.id)).toEqual(['start']);
+	});
+});
+
+describe('shouldClearNavFilter', () => {
+	test('clears Escape when the filter has text', () => {
+		expect(shouldClearNavFilter('Escape', 'home')).toBe(true);
+	});
+
+	test('does not intercept other keys or an empty filter', () => {
+		expect(shouldClearNavFilter('Escape', '')).toBe(false);
+		expect(shouldClearNavFilter('Enter', 'home')).toBe(false);
+	});
+});
+
+describe('filterNavChildren', () => {
+	const section = { id: 'today', label: 'Today', children: [{ id: 'home', label: 'Home' }, { id: 'review', label: 'Review' }] };
+
+	test('returns the matching child', () => {
+		expect(filterNavChildren(section, 'h').map((item) => item.id)).toEqual(['home']);
+	});
+
+	test('returns all children when the section matches', () => {
+		expect(filterNavChildren(section, 'today').map((item) => item.id)).toEqual(['home', 'review']);
+	});
+});
+
+describe('shouldOpenNavSection', () => {
+	const section = { id: 'today', label: 'Today', children: [{ id: 'home', label: 'Home' }, { id: 'review', label: 'Review' }] };
+
+	test('opens a closed section when a child matches', () => {
+		expect(shouldOpenNavSection({ ...section }, 'h', new Set())).toBe(true);
+	});
+
+	test('keeps an unrelated closed section closed', () => {
+		expect(shouldOpenNavSection({ ...section }, 'zzz', new Set())).toBe(false);
+	});
+
+	test('preserves an explicitly open section without a filter', () => {
+		expect(shouldOpenNavSection({ ...section }, '', new Set(['today']))).toBe(true);
+	});
+});
+
+
+import { sectionForActiveHref, sectionIds, initialOpenSections } from '../src/sections.js';
+import type { NavItem } from '../src/types.js';
+
+const NAV: NavItem[] = [
+  { id: 'today', label: 'Today', children: [{ id: 'home', href: '/', label: 'Home' }, { id: 'review', href: '/review', label: 'Review' }] },
+  { id: 'agents', label: 'Agents', children: [{ id: 'team', href: '/team', label: 'Team' }] },
+  { id: 'analyze', label: 'Analyze', children: [{ id: 'insights', href: '/insights', label: 'Insights' }, { id: 'search', href: '/search', label: 'Search' }] },
+  { id: 'settings', href: '/settings', label: 'Settings' },
+];
+
+describe('sectionIds', () => {
+  test('lists only items with children', () => {
+    expect(sectionIds(NAV)).toEqual(['today', 'agents', 'analyze']);
+  });
+});
+
+describe('sectionForActiveHref', () => {
+  test('finds the section holding the active page', () => {
+    expect(sectionForActiveHref(NAV, '/insights')?.id).toBe('analyze');
+  });
+
+  test('returns null for a top-level page', () => {
+    expect(sectionForActiveHref(NAV, '/settings')).toBeNull();
+  });
+
+  test('returns null for an unknown href', () => {
+    expect(sectionForActiveHref(NAV, '/missing')).toBeNull();
+  });
+
+  test('returns null for an empty href', () => {
+    expect(sectionForActiveHref(NAV, '')).toBeNull();
+  });
+});
+
+describe('initialOpenSections', () => {
+  test('every section open by default', () => {
+    expect([...initialOpenSections(NAV, null)]).toEqual(['today', 'agents', 'analyze']);
+  });
+
+  test('persisted state is authoritative (user closed sections stay closed)', () => {
+    expect([...initialOpenSections(NAV, ['analyze'])]).toEqual(['analyze']);
+    expect([...initialOpenSections(NAV, ['today', 'agents'])]).toEqual(['today', 'agents']);
+  });
+
+  test('empty persisted list stays closed for all sections', () => {
+    expect([...initialOpenSections(NAV, [])]).toEqual([]);
+  });
+});
+
+
+import { activeSectionToForceOpen } from '../src/sections.js';
+
+describe('activeSectionToForceOpen', () => {
+  test('returns the section holding the active page when it is closed', () => {
+    expect(activeSectionToForceOpen(NAV, '/insights', new Set(['today']))?.id).toBe('analyze');
+  });
+
+  test('returns null when the section is already open (no write → no loop)', () => {
+    expect(activeSectionToForceOpen(NAV, '/insights', new Set(['today', 'agents', 'analyze']))).toBeNull();
+  });
+
+  test('returns null for a top-level page', () => {
+    expect(activeSectionToForceOpen(NAV, '/settings', new Set())).toBeNull();
+  });
+
+  test('returns null for an empty href', () => {
+    expect(activeSectionToForceOpen(NAV, '', new Set())).toBeNull();
+  });
+});

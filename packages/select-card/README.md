@@ -1,0 +1,81 @@
+# @wornpage/select-card
+
+> Part of **[Wornpage Components](https://github.com/wornpage/wornpage#component-library)**.
+> [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/wornpage/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/wornpage)
+
+Svelte 5 card-based selection control. It renders one native button with
+controlled `aria-pressed` state, readable disabled styling, visible keyboard
+focus, stable touch targets, and long-label containment.
+
+<!-- wornpage-delivery:v2 browser-bundle -->
+## Delivery
+
+`src/` is the canonical implementation and the Svelte consumer entry. `dist/` is a generated browser bundle; run `bun run build` after source changes and never edit `dist/` directly.
+
+Repository text is checked out as LF through `.gitattributes`, so generated output is byte-stable across Windows and Linux.
+
+The shared [component delivery contract](https://github.com/wornpage/wornpage/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.
+<!-- /wornpage-delivery -->
+
+## Source use
+
+This package is not published to npm. Check out this repository at a reviewed commit, install its
+dependencies from `bun.lock`, and consume `src/index.ts` through a local workspace alias. The
+`@wornpage/select-card` imports below assume that local alias; they do not resolve from the public
+npm registry.
+
+## Svelte
+
+```svelte
+<script>
+  import { SelectCard } from '@wornpage/select-card';
+  let plan = $state('pro');
+</script>
+
+<SelectCard
+  label="Pro"
+  description="Larger limits"
+  pressed={plan === 'pro'}
+  onclick={() => plan = 'pro'}
+/>
+```
+
+Selection is controlled by the parent. The component reports clicks but never
+changes `pressed` itself.
+
+## Web component
+
+```html
+<worn-select-card label="Pro" description="Larger limits" pressed></worn-select-card>
+<script type="module">import '@wornpage/select-card';</script>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | `string` | required | Primary option label |
+| `description` | `string` | none | Supporting text |
+| `pressed` | `boolean` | `false` | Controlled selected state |
+| `disabled` | `boolean` | `false` | Disables selection |
+| `onclick` | `(event: MouseEvent) => void` | none | Selection handler |
+
+Additional button attributes such as `aria-label` and `data-*` are forwarded.
+The primary label is 15px by default; set `--worn-select-card-title-size` on a
+container only when a product surface needs a different established type size.
+
+## Theme tokens
+
+- `--worn-select-card-focus` — focus outline; falls back to the shared
+  `--worn-focus` theme token, then `currentColor`
+
+## Commands
+
+```bash
+bun test
+bun run build
+```
+
+## License
+
+MIT

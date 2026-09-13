@@ -1,0 +1,41 @@
+{
+  "name": "@wornpage/theme",
+  "version": "0.1.3",
+  "description": "Svelte 5 theme system \u2014 multi-theme CSS custom properties, persist, auto-detect",
+  "type": "module",
+  "wornpage": {
+    "contractVersion": 2,
+    "delivery": "browser-bundle"
+  },
+  "scripts": {
+    "test": "bun test",
+    "check:types": "svelte-check --tsconfig ./tests/type-consumer/tsconfig.json --fail-on-warnings",
+    "build": "vite build"
+  },
+  "main": "./dist/worn-theme.js",
+  "svelte": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "svelte": "./src/index.ts",
+      "default": "./dist/worn-theme.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "peerDependencies": {
+    "svelte": "^5.56.8"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wornpage/wornpage.git",
+    "directory": "packages/theme"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.2.0",
+    "vite": "^8.1.5"
+  }
+}

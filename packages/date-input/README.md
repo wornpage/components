@@ -1,6 +1,6 @@
 # @wornpage/date-input
 
-> Part of **[Wornpage Components](https://github.com/wornpage/components#component-library)**.
+> Part of **[Wornpage Components](https://github.com/wornpage/components#svelte-component-library)**.
 > [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/components/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/components)
 
 Svelte 5 date input with shared app-shell styling and native date-picker semantics. It keeps a compact desktop field and uses a 44px minimum target on coarse pointers.

@@ -1,6 +1,6 @@
 # @wornpage/receipt
 
-> Part of **[Wornpage Components](https://github.com/wornpage/components#component-library)**.
+> Part of **[Wornpage Components](https://github.com/wornpage/components#svelte-component-library)**.
 > [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/components/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/components)
 
 Svelte 5 action receipt — an undo-capable result card with a fly-in
@@ -73,7 +73,7 @@ result without adding it to the sequential tab order. Its focus outline uses
 
 `undoAvailable` is a display flag only — this component owns no state. Drive it
 from whatever tracks your undo descriptor, and clear it once the descriptor no
-longer matches what is on screen. See [`@wornpage/undo`](https://github.com/wornpage/undo)
+longer matches what is on screen. See [`@wornpage/undo`](https://github.com/wornpage/components/tree/main/packages/undo)
 for a snapshot stack to pair with it.
 
 ## Tests

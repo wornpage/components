@@ -1,6 +1,6 @@
 # @wornpage/drawer
 
-> Part of **[Wornpage Components](https://github.com/wornpage/components#component-library)**.
+> Part of **[Wornpage Components](https://github.com/wornpage/components#svelte-component-library)**.
 > [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/components/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/components)
 
 Accessible Svelte 5 drawer for mobile navigation and focused secondary content.

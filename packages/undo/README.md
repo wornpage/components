@@ -1,6 +1,6 @@
 # @wornpage/undo
 
-> Part of **[Wornpage Components](https://github.com/wornpage/components#component-library)**.
+> Part of **[Wornpage Components](https://github.com/wornpage/components#svelte-component-library)**.
 > [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/components/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/components)
 
 Svelte 5 undo system: a generic snapshot stack plus a receipt component that

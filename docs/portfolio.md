@@ -11,7 +11,7 @@ action, and retain the final delivery decision.
 | Bounded authority | WebMCP declarations are page-owned and describe available actions and lifecycle limits. | [WebMCP Conformance](https://github.com/wornpage/webmcp-conformance) |
 | Human approval | The public challenge lets agents inspect visible evidence and prepare drafts for human review. It is a frozen challenge submission, separate from the private production app. | [WebMCP challenge demo](https://projects-webmcp-extension.pages.dev/webmcp-challenge) |
 | Inspectable evidence | Action receipts and lifecycle behavior are explicit validation concerns. | [Conformance source and checks](https://github.com/wornpage/webmcp-conformance) |
-| Reviewed delivery | The public PR runner performs fixed local Git and GitHub actions selected by the private Projects service. The repository owner separately marks drafts ready and decides merge or close. | [Runner contract](https://github.com/wornpage/projects-pr-machine/blob/main/docs/projects-pr.md) · [Trust boundary](https://github.com/wornpage/projects-pr-machine/blob/main/docs/agent-trust.md) |
+| Reviewed delivery | The public PR runner performs fixed local Git and GitHub actions selected by the private Projects service. The repository owner separately marks drafts ready and decides merge or close. | [Runner contract](https://github.com/wornpage/pr-runner/blob/main/docs/projects-pr.md) · [Trust boundary](https://github.com/wornpage/pr-runner/blob/main/docs/agent-trust.md) |
 | Accessible operation | The Svelte component library includes keyboard support, visible focus, reduced-motion behavior, and theming. | [Component catalog](https://wornpage-components.pages.dev) · [Setup guide](getting-started.md) |
 
 ## Content-governance boundary

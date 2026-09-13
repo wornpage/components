@@ -34,8 +34,8 @@ Release example: [Wornpage Projects — WebMCP Challenge](https://projects-webmc
 ## Quick start — browsing
 
 ```bash
-git clone https://github.com/wornpage/wornpage.git
-cd wornpage
+git clone https://github.com/wornpage/components.git
+cd components
 bun install
 bunx playwright install chromium # one-time local browser install; Node 24.18.0 required
 bun run verify:catalog # full contracts, build, and Chromium catalog matrix

@@ -1,6 +1,6 @@
 {
   "name": "@wornpage/toast",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Svelte 5 toast notification with CSP-compatible motion, contextual dismissal, and compact containment",
   "type": "module",
   "wornpage": {
@@ -30,7 +30,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/toast"
   },
   "devDependencies": {

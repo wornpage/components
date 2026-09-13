@@ -1,7 +1,7 @@
 {
   "name": "@wornpage/sync",
-  "version": "0.1.0",
-  "description": "Demo state sync code generation and hashing \u2014 no-account sharing for wornpage apps",
+  "version": "0.1.1",
+  "description": "Demo state sync code generation and hashing — no-account sharing for wornpage apps",
   "type": "module",
   "wornpage": {
     "contractVersion": 2,
@@ -28,7 +28,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/sync"
   }
 }

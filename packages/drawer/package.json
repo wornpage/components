@@ -1,6 +1,6 @@
 {
   "name": "@wornpage/drawer",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Svelte 5 accessible drawer with focus trapping and reduced-motion transitions",
   "type": "module",
   "wornpage": {
@@ -36,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/drawer"
   }
 }

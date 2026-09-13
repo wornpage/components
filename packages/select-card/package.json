@@ -1,6 +1,6 @@
 {
   "name": "@wornpage/select-card",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Svelte 5 card-based selection control with accessible pressed and disabled states",
   "type": "module",
   "wornpage": {
@@ -31,7 +31,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/select-card"
   },
   "devDependencies": {

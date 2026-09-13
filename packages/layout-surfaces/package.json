@@ -1,6 +1,6 @@
 {
   "name": "@wornpage/layout-surfaces",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Svelte 5 panels, containers, cards, folded surfaces, dividers, and resizable panes for compact application layouts",
   "type": "module",
   "wornpage": {
@@ -45,7 +45,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/layout-surfaces"
   }
 }

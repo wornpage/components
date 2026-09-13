@@ -34,6 +34,6 @@
     "bun": ">=1.0.0",
     "node": ">=24.18.0"
   },
-  "repository": "wornpage/wornpage",
+  "repository": "wornpage/components",
   "license": "MIT"
 }

@@ -1,7 +1,7 @@
 # @wornpage/binary-controls
 
-> Part of **[Wornpage Components](https://github.com/wornpage/wornpage#component-library)**.
-> [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/wornpage/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/wornpage)
+> Part of **[Wornpage Components](https://github.com/wornpage/components#component-library)**.
+> [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/components/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/components)
 
 Svelte 5 checkbox and switch controls with native input semantics, full-surface touch targets, compact label containment, and state boundaries that remain legible across Wornpage themes.
 
@@ -12,7 +12,7 @@ Svelte 5 checkbox and switch controls with native input semantics, full-surface 
 
 Repository text is checked out as LF through `.gitattributes`, so generated output is byte-stable across Windows and Linux.
 
-The shared [component delivery contract](https://github.com/wornpage/wornpage/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.
+The shared [component delivery contract](https://github.com/wornpage/components/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.
 <!-- /wornpage-delivery -->
 
 ## Install

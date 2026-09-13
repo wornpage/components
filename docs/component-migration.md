@@ -1,6 +1,6 @@
 # Component source consolidation
 
-`wornpage/wornpage` owns all active component source under `packages/`, the
+`wornpage/components` owns all active component source under `packages/`, the
 catalog under `demo/`, and release verification under `packages/cli/`. The
 standalone repositories are historical sources. Their final imported revisions
 are recorded in [standalone-provenance.json](standalone-provenance.json).

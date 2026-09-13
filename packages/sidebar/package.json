@@ -1,7 +1,7 @@
 {
   "name": "@wornpage/sidebar",
-  "version": "0.1.8",
-  "description": "Svelte 5 sidebar navigation component \u2014 collapsible groups, keyboard nav, search, favorites, recent items, drag-to-reorder",
+  "version": "0.1.9",
+  "description": "Svelte 5 sidebar navigation component — collapsible groups, keyboard nav, search, favorites, recent items, drag-to-reorder",
   "type": "module",
   "wornpage": {
     "contractVersion": 2,
@@ -34,7 +34,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/sidebar"
   }
 }

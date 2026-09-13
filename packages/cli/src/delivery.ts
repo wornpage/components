@@ -16,7 +16,7 @@ export function renderDeliveryReadmeSection(delivery: DeliveryDeclaration): stri
     '',
     'Repository text is checked out as LF through `.gitattributes`, so generated output is byte-stable across Windows and Linux.',
     '',
-    'The shared [component delivery contract](https://github.com/wornpage/wornpage/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.',
+    'The shared [component delivery contract](https://github.com/wornpage/components/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.',
     '<!-- /wornpage-delivery -->',
   ].join('\n');
 }

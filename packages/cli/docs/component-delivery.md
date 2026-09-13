@@ -2,7 +2,7 @@
 
 ## Ownership
 
-`wornpage/wornpage` owns all active package source under `packages/`. The catalog
+`wornpage/components` owns all active package source under `packages/`. The catalog
 uses those workspaces directly. Each component declares contract version 2 and
 either `source` or `browser-bundle` delivery in `package.json#wornpage`.
 
@@ -62,7 +62,7 @@ source-sync workflow have been retired.
    tag assigned to the changed packages:
 
    ```sh
-   gh release edit TAG --repo wornpage/wornpage --draft=false
+   gh release edit TAG --repo wornpage/components --draft=false
    ```
 6. In a follow-up reviewed change, set `baselineReleaseTag` to the newly
    published tag. That release's schema-2 manifest is the next full-catalog

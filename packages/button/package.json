@@ -1,6 +1,6 @@
 {
   "name": "@wornpage/button",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Svelte 5 text, icon, and reaction button primitives",
   "type": "module",
   "wornpage": {
@@ -38,7 +38,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/button"
   }
 }

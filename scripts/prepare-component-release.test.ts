@@ -15,7 +15,7 @@ import {
 
 const HEAD = 'a'.repeat(40);
 const BASELINE_HEAD = 'b'.repeat(40);
-const BASELINE_TAG = 'components-2026.09.09';
+const BASELINE_TAG = 'migrated-components-2026.09.09';
 const NEXT_TAG = 'components-2026.10.01';
 const RUN_ID = 34397705651;
 const WORKFLOW_ID = 352600638;
@@ -103,8 +103,8 @@ function runMetadata(overrides: Record<string, unknown> = {}) {
     head_sha: HEAD,
     status: 'completed',
     conclusion: 'success',
-    repository: { id: REPOSITORY_ID, full_name: 'wornpage/wornpage' },
-    head_repository: { id: REPOSITORY_ID, full_name: 'wornpage/wornpage' },
+    repository: { id: REPOSITORY_ID, full_name: 'wornpage/components' },
+    head_repository: { id: REPOSITORY_ID, full_name: 'wornpage/components' },
     ...overrides,
   };
 }
@@ -372,7 +372,7 @@ describe('selective component publication', () => {
     const manifestUrl = 'https://api.github.test/assets/manifest';
     const validRelease = { tag_name: BASELINE_TAG, draft: false, immutable: true, assets: [{ name: 'component-manifest.json', url: manifestUrl }] };
     const read = (release: Record<string, unknown>) => readPublishedManifestFromGitHub(BASELINE_TAG, async (args) => {
-      if (args[2] === `repos/wornpage/wornpage/releases/tags/${BASELINE_TAG}`) return JSON.stringify(release);
+      if (args[2] === `repos/wornpage/components/releases/tags/${BASELINE_TAG}`) return JSON.stringify(release);
       if (args[2] === manifestUrl) return JSON.stringify(baseline);
       throw new Error(`Unexpected command: ${args.join(' ')}`);
     });

@@ -1,6 +1,6 @@
 {
   "name": "@wornpage/data-display",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Svelte 5 badges, chips, avatars, metrics, progress indicators, and timelines for compact application workflows",
   "type": "module",
   "wornpage": {
@@ -42,7 +42,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/data-display"
   }
 }

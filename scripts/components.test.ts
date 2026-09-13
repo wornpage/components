@@ -23,7 +23,7 @@ describe('canonical component delivery', () => {
       expect(pkg.name).toBe(`@wornpage/${name}`);
       expect(pkg.version).toBe(COMPONENT_VERSIONS[name]);
       expect(pkg.repository.directory).toBe(`packages/${name}`);
-      expect(pkg.repository.url).toBe('https://github.com/wornpage/wornpage.git');
+      expect(pkg.repository.url).toBe('https://github.com/wornpage/components.git');
       const internalPeers = Object.keys(pkg.peerDependencies ?? {}).filter(key => key.startsWith('@wornpage/')).map(key => key.slice('@wornpage/'.length)).sort();
       expect(internalPeers).toEqual([...(COMPONENT_PEERS[name] ?? [])].sort());
       for (const peer of internalPeers) expect(pkg.peerDependencies[`@wornpage/${peer}`]).toBe(COMPONENT_VERSIONS[peer]);
@@ -39,19 +39,19 @@ describe('canonical component delivery', () => {
   it('binds every public install and source link to its explicit package release', () => {
     for (const name of COMPONENT_NAMES) {
       const release = componentRelease(name);
-      expect(release.archiveUrl).toBe(`https://github.com/wornpage/wornpage/releases/download/${COMPONENT_RELEASES[name].releaseTag}/wornpage-${name}-${COMPONENT_VERSIONS[name]}.tgz`);
-      expect(release.sourceUrl).toBe(`https://github.com/wornpage/wornpage/tree/${COMPONENT_RELEASES[name].releaseTag}/packages/${name}`);
+      expect(release.archiveUrl).toBe(`https://github.com/wornpage/components/releases/download/${COMPONENT_RELEASES[name].releaseTag}/wornpage-${name}-${COMPONENT_VERSIONS[name]}.tgz`);
+      expect(release.sourceUrl).toBe(`https://github.com/wornpage/components/tree/${COMPONENT_RELEASES[name].releaseTag}/packages/${name}`);
     }
     expect(() => componentRelease('unknown')).toThrow('Unknown Wornpage component');
   });
 
   it('pins mixed-release peers to each package actual immutable release', () => {
     const releases = {
-      button: { version: '0.2.2', releaseTag: 'components-2026.09.09' },
+      button: { version: '0.2.2', releaseTag: 'migrated-components-2026.09.09' },
       'async-states': { version: '0.1.6', releaseTag: 'components-2026.10.01' },
     };
     expect(buildComponentInstallCommand('async-states', releases, { 'async-states': ['button'] })).toBe(
-      'bun add "https://github.com/wornpage/wornpage/releases/download/components-2026.09.09/wornpage-button-0.2.2.tgz" "https://github.com/wornpage/wornpage/releases/download/components-2026.10.01/wornpage-async-states-0.1.6.tgz"',
+      'bun add "https://github.com/wornpage/components/releases/download/migrated-components-2026.09.09/wornpage-button-0.2.2.tgz" "https://github.com/wornpage/components/releases/download/components-2026.10.01/wornpage-async-states-0.1.6.tgz"',
     );
   });
 

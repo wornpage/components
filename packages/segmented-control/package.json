@@ -1,6 +1,6 @@
 {
   "name": "@wornpage/segmented-control",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Svelte 5 segmented radio control with compact containment and isolated native groups",
   "type": "module",
   "wornpage": {
@@ -31,7 +31,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/segmented-control"
   },
   "devDependencies": {

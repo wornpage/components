@@ -544,7 +544,7 @@ async function assertCatalogCell(browser, viewportConfig, theme) {
     assert.ok(coverage.primary, `${label} did not render the primary button variant`);
     assert.ok(contrast(coverage.primary.color, coverage.primary.background) >= 4.5, `${label} primary button contrast is below 4.5`);
     assert.ok(coverage.guide?.visible, `${label} does not expose a visible setup guide link`);
-    assert.equal(coverage.guide?.href, 'https://github.com/wornpage/wornpage/blob/main/docs/getting-started.md', `${label} setup guide link target drifted`);
+    assert.equal(coverage.guide?.href, 'https://github.com/wornpage/components/blob/main/docs/getting-started.md', `${label} setup guide link target drifted`);
     if (viewportConfig.id === 'compact-touch') {
       assert.deepEqual(coverage.inputSizes.filter((size) => size < 16), [], `${label} has editable text below 16px`);
       const undersized = coverage.targets.filter(({ width, height }) => width < 43.5 || height < 43.5);

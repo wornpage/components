@@ -1,7 +1,7 @@
 # Wornpage workspace tooling
 
 Internal scaffolding and package verification for the canonical
-[`wornpage/wornpage`](https://github.com/wornpage/wornpage) workspace.
+[`wornpage/components`](https://github.com/wornpage/components) workspace.
 
 ```sh
 bun run new <name>

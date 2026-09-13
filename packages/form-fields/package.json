@@ -1,6 +1,6 @@
 {
   "name": "@wornpage/form-fields",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Svelte 5 input, textarea, select, and range controls with native semantics and standalone responsive guarantees",
   "type": "module",
   "wornpage": {
@@ -31,7 +31,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wornpage/wornpage.git",
+    "url": "https://github.com/wornpage/components.git",
     "directory": "packages/form-fields"
   },
   "devDependencies": {

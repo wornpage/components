@@ -1,7 +1,7 @@
 # @wornpage/undo
 
-> Part of **[Wornpage Components](https://github.com/wornpage/wornpage#component-library)**.
-> [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/wornpage/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/wornpage)
+> Part of **[Wornpage Components](https://github.com/wornpage/components#component-library)**.
+> [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/components/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/components)
 
 Svelte 5 undo system: a generic snapshot stack plus a receipt component that
 offers Undo/Redo on the last action. It has no runtime dependency beyond its
@@ -14,7 +14,7 @@ Svelte peer.
 
 Repository text is checked out as LF through `.gitattributes`, so generated output is byte-stable across Windows and Linux.
 
-The shared [component delivery contract](https://github.com/wornpage/wornpage/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.
+The shared [component delivery contract](https://github.com/wornpage/components/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.
 <!-- /wornpage-delivery -->
 
 This README is the component-specific API and behavior contract; the CLI

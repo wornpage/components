@@ -2,7 +2,7 @@ import release from '../components-release.json' with { type: 'json' };
 
 export type ComponentReleaseIdentity = { version: string; releaseTag: string };
 
-const RELEASE_TAG_PATTERN = /^components-\d{4}\.\d{2}\.\d{2}(?:\.\d+)?$/u;
+const RELEASE_TAG_PATTERN = /^(?:migrated-)?components-\d{4}\.\d{2}\.\d{2}(?:\.\d+)?$/u;
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u;
 
 export function validateAuthoredRelease(value: unknown) {
@@ -47,7 +47,7 @@ export const COMPONENT_PEERS = authoredRelease.peers;
 export function resolveComponentRelease(name: string, releases: Record<string, ComponentReleaseIdentity>) {
   const identity = releases[name];
   if (!identity) throw new Error(`Unknown Wornpage component: ${name}`);
-  const repositoryUrl = 'https://github.com/wornpage/wornpage';
+  const repositoryUrl = 'https://github.com/wornpage/components';
   const filename = `wornpage-${name}-${identity.version}.tgz`;
   return {
     repositoryUrl,

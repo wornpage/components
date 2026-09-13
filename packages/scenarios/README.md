@@ -1,7 +1,7 @@
 # @wornpage/scenarios
 
-> Part of **[Wornpage Components](https://github.com/wornpage/wornpage#component-library)**.
-> [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/wornpage/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/wornpage)
+> Part of **[Wornpage Components](https://github.com/wornpage/components#component-library)**.
+> [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/components/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/components)
 
 Shared scenario definitions and validators for wornpage demo apps. Pure
 TypeScript, zero dependencies, no Svelte required.
@@ -16,7 +16,7 @@ process as well as in a browser — it is data and validators, nothing else.
 
 Repository text is checked out as LF through `.gitattributes`, so generated output is byte-stable across Windows and Linux.
 
-The shared [component delivery contract](https://github.com/wornpage/wornpage/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.
+The shared [component delivery contract](https://github.com/wornpage/components/blob/main/packages/cli/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.
 <!-- /wornpage-delivery -->
 
 ## Source use

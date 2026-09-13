@@ -10,8 +10,8 @@ Install the immutable component release archives with Bun (see
 [Bun's `add` reference](https://bun.sh/docs/pm/cli/add)):
 
 ```bash
-bun add "https://github.com/wornpage/wornpage/releases/download/components-2026.09.09/wornpage-button-0.2.2.tgz"
-bun add "https://github.com/wornpage/wornpage/releases/download/components-2026.09.09/wornpage-theme-0.1.3.tgz"
+bun add "https://github.com/wornpage/components/releases/download/components-2026.09.13/wornpage-button-0.2.3.tgz"
+bun add "https://github.com/wornpage/components/releases/download/components-2026.09.13/wornpage-theme-0.1.4.tgz"
 ```
 
 Put this complete example in a `.svelte` file. It uses native buttons and
@@ -116,5 +116,15 @@ archive URL and SHA-512 lockfile entry together when upgrading a consumer.
 This is not npm scope publication.
 
 For component API details, use the current canonical
-[Button source](https://github.com/wornpage/wornpage/tree/components-2026.09.09/packages/button) and
-[Theme source](https://github.com/wornpage/wornpage/tree/components-2026.09.09/packages/theme).
+[Button source](https://github.com/wornpage/components/tree/components-2026.09.13/packages/button) and
+[Theme source](https://github.com/wornpage/components/tree/components-2026.09.13/packages/theme).
+
+## Distribution provenance
+
+The new component repository separates byte-identical historical archives under
+`migrated-components-*` tags from newly built packages under `components-*` tags.
+Historical archives retain their original package metadata, licenses, source
+provenance and hashes. The catalog uses the newly versioned packages shown above.
+The release gate compares new builds against the migrated baseline and requires
+a version increase for every changed archive. Repository-link metadata changes
+therefore receive new package versions.

@@ -8,7 +8,7 @@ import {
   type ComponentReleaseIdentity,
 } from './components.ts';
 
-const repository = 'wornpage/wornpage';
+const repository = 'wornpage/components';
 const workflowPath = '.github/workflows/workspace.yml';
 const releaseArtifactPrefix = 'component-release-verification';
 const COMMIT_PATTERN = /^[0-9a-f]{40}$/u;

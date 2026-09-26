@@ -28,7 +28,7 @@ export interface CatalogMetadata {
 export const DEMO_CATALOG = [
   { id: 'alert', label: 'Alert', category: 'status', description: 'Inline feedback with clear tone and dismiss semantics.', exampleMarker: 'Alert', exampleKind: 'component' },
   { id: 'async-states', label: 'Async states', category: 'status', description: 'Loading, empty, and retry states for bounded application workflows.', exampleMarker: 'Spinner', exampleKind: 'component' },
-  { id: 'data-display', label: 'Data display', category: 'status', description: 'Compact identity, status, progress, and timeline primitives.', exampleMarker: 'Progress', exampleKind: 'component' },
+  { id: 'data-display', label: 'Data display', category: 'status', description: 'Identity, status, progress, timelines, and proposed-change previews.', exampleMarker: 'ChangePreview', exampleKind: 'component' },
   { id: 'receipt', label: 'Receipt', category: 'status', description: 'Action confirmation with explicit result cells and undo support.', exampleMarker: 'WornReceipt', exampleKind: 'component' },
   { id: 'toast', label: 'Toast', category: 'status', description: 'Dismissible, motion-aware notifications for transient results.', exampleMarker: 'Toast', exampleKind: 'component' },
   { id: 'undo', label: 'Undo', category: 'status', description: 'Snapshot history and a focused undo or redo receipt.', exampleMarker: 'UndoReceipt', exampleKind: 'component' },

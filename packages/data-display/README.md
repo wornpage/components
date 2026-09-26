@@ -3,7 +3,7 @@
 > Part of **[Wornpage Components](https://github.com/wornpage/components#svelte-component-library)**.
 > [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/components/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/components)
 
-Compact Svelte 5 badges, chips, avatars, metrics, progress indicators, and timelines for application workflows.
+Compact Svelte 5 badges, chips, avatars, metrics, progress indicators, timelines, and change previews for application workflows.
 The package is source-delivered so consuming SvelteKit applications compile it with their
 own theme tokens and CSP policy.
 
@@ -28,7 +28,7 @@ npm registry.
 
 ```svelte
 <script>
-  import { Avatar, Badge, Chip, Metric, MetricGrid, Progress, Timeline } from '@wornpage/data-display';
+  import { Avatar, Badge, Chip, ChangePreview, Metric, MetricGrid, Progress, Timeline } from '@wornpage/data-display';
 
   let active = $state(false);
   const releases = [
@@ -47,6 +47,10 @@ npm registry.
 </MetricGrid>
 <Progress value={7} max={10} label="Review complete" />
 <Timeline entries={releases} />
+<ChangePreview title="Review changes" fields={[
+  { id: 'owner', label: 'Owner', before: 'Avery', after: 'Morgan' },
+  { id: 'date', label: 'Due date', before: 'Not set', after: 'Friday' }
+]} />
 ```
 
 ## Badge
@@ -141,6 +145,28 @@ stays one column at 420 px and below; wider layouts retain the automatic fitting
 `Metric` accepts `label`, `value`, optional `description`, a
 `default | success | warning` tone, and optional child content such as `Progress`. Both surfaces
 contain hostile text without relying on consumer CSS.
+
+## ChangePreview
+
+`ChangePreview` shows current and proposed text side by side before a caller decides
+whether to apply a change. It counts changed fields against the full supplied
+denominator, shows only changes initially, and offers a native button to reveal
+unchanged fields. When nothing changes, every field remains visible; an empty
+array gives an explicit empty state. The component never applies or saves data.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | required | Visible and accessible heading |
+| `fields` | `ChangePreviewField[]` | required | Unique `id`, visible `label`, `before`, and `after` strings |
+| `currentLabel` | `string` | `Current` | Label above every original value |
+| `proposedLabel` | `string` | `Proposed` | Label above every proposed value |
+| `headingLevel` | `2 \| 3` | `2` | Heading rank for the title |
+| `class` | `string` | empty | Additional root class |
+
+Changes use exact string comparison, so whitespace and line breaks remain
+meaningful. Empty values display as “Not set.” Text is escaped and wraps within
+mobile cards. The host supplies theme colors through its `--worn-*` tokens and
+keeps ownership of the actual change and confirmation flow.
 
 ## Timeline
 

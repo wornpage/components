@@ -2,11 +2,13 @@ import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { compile } from 'svelte/compiler';
 import { assertSafeHref } from '../src/safe-href';
+import { changePreviewModel, type ChangePreviewField } from '../src/change-preview';
 
 const read = (name: string) => readFileSync(new URL(`../src/${name}.svelte`, import.meta.url), 'utf8');
 const avatar = read('Avatar');
 const badge = read('Badge');
 const chip = read('Chip');
+const changePreview = read('ChangePreview');
 const metric = read('Metric');
 const metricGrid = read('MetricGrid');
 const progress = read('Progress');
@@ -25,17 +27,32 @@ describe('@wornpage/data-display', () => {
 	it('declares one source-delivered v2 package', () => {
 		const pkg = require('../package.json');
 		expect(pkg.name).toBe('@wornpage/data-display');
-		expect(pkg.version).toBe('0.1.8');
+		expect(pkg.version).toBe('0.1.9');
 		expect(pkg.wornpage).toEqual({ contractVersion: 2, delivery: 'source' });
 		expect(pkg.main).toBe('./src/index.ts');
 	});
 
-	it('exports and compiles all seven component surfaces', async () => {
+	it('exports and compiles all eight component surfaces', async () => {
 		const mod = await import('../src/index.ts');
-		for (const name of ['Avatar', 'Badge', 'Chip', 'Metric', 'MetricGrid', 'Progress', 'Timeline']) expect(mod[name]).toBeDefined();
-		for (const [name, source] of Object.entries({ Avatar: avatar, Badge: badge, Chip: chip, Metric: metric, MetricGrid: metricGrid, Progress: progress, Timeline: timeline })) {
+		for (const name of ['Avatar', 'Badge', 'Chip', 'ChangePreview', 'Metric', 'MetricGrid', 'Progress', 'Timeline']) expect(mod[name]).toBeDefined();
+		for (const [name, source] of Object.entries({ Avatar: avatar, Badge: badge, Chip: chip, ChangePreview: changePreview, Metric: metric, MetricGrid: metricGrid, Progress: progress, Timeline: timeline })) {
 			expect(() => compile(source, { filename: `${name}.svelte`, generate: 'client' })).not.toThrow();
+			expect(() => compile(source, { filename: `${name}.svelte`, generate: 'server' })).not.toThrow();
 		}
+	});
+
+	it('counts exact changes without hiding the denominator or empty states', () => {
+		const fields: ChangePreviewField[] = [
+			{ id: 'owner', label: 'Owner', before: 'Avery', after: 'Morgan' },
+			{ id: 'status', label: 'Status', before: 'Ready', after: 'Ready' },
+			{ id: 'note', label: 'Note', before: 'First line', after: 'First line\nSecond line' }
+		];
+		const compact = changePreviewModel(fields);
+		expect({ total: compact.totalCount, changed: compact.changedCount, unchanged: compact.unchangedCount }).toEqual({ total: 3, changed: 2, unchanged: 1 });
+		expect(compact.visibleFields.map(({ id }) => id)).toEqual(['owner', 'note']);
+		expect(changePreviewModel(fields, true).visibleFields.map(({ id }) => id)).toEqual(['owner', 'status', 'note']);
+		expect(changePreviewModel([{ id: 'same', label: 'Same', before: '', after: '' }]).visibleFields).toHaveLength(1);
+		expect(changePreviewModel([])).toEqual({ totalCount: 0, changedCount: 0, unchangedCount: 0, visibleFields: [] });
 	});
 
 	it('owns semantic metric lists and bounded dashboard values', () => {

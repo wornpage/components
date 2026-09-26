@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "baselineReleaseTag": "migrated-components-2026.09.09.1",
+  "baselineReleaseTag": "components-2026.09.26",
   "packages": {
     "alert": {
       "version": "0.1.3",

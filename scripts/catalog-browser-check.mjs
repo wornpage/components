@@ -291,6 +291,18 @@ async function exerciseFamilies(page, label) {
   assert.equal(await dataDisplay.getByRole('progressbar').getAttribute('aria-valuenow'), '8');
   await dataDisplay.getByRole('button', { name: 'Reset display', exact: true }).click();
   assert.equal(await dataDisplay.getByRole('progressbar').getAttribute('aria-valuenow'), '7');
+  const changePreview = dataDisplay.getByRole('region', { name: 'Compare proposed details' });
+  await expectText(changePreview, /2 of 3 fields change/, `${label} change preview lost its full denominator`);
+  assert.equal(await changePreview.getByRole('listitem').count(), 2, `${label} default preview should show changed fields only`);
+  const showUnchanged = changePreview.getByRole('button', { name: 'Show 1 unchanged field' });
+  await showUnchanged.click();
+  assert.equal(await changePreview.getByRole('listitem').count(), 3, `${label} unchanged field reveal did not work`);
+  assert.equal(await changePreview.getByRole('button', { name: 'Hide unchanged fields' }).getAttribute('aria-pressed'), 'true');
+  await dataDisplay.getByRole('button', { name: 'Switch proposed owner' }).click();
+  await expectText(changePreview, /1 of 3 fields changes/, `${label} proposed values did not update reactively`);
+  await changePreview.getByRole('button', { name: 'Hide unchanged fields' }).click();
+  assert.equal(await changePreview.getByRole('listitem').count(), 1, `${label} changed-only view did not return`);
+  assert.equal(await changePreview.evaluate((node) => node.scrollWidth <= node.clientWidth + 1), true, `${label} change preview overflowed its container`);
   mark('data-display');
 
   const date = page.locator('#date-input');

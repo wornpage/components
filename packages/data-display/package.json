@@ -1,7 +1,7 @@
 {
   "name": "@wornpage/data-display",
-  "version": "0.1.8",
-  "description": "Svelte 5 badges, chips, avatars, metrics, progress indicators, and timelines for compact application workflows",
+  "version": "0.1.9",
+  "description": "Svelte 5 badges, chips, avatars, metrics, progress, timelines, and change previews for application workflows",
   "type": "module",
   "wornpage": {
     "contractVersion": 2,
@@ -37,6 +37,7 @@
     "metric",
     "progress",
     "timeline",
+    "change-preview",
     "wornpage"
   ],
   "license": "MIT",

@@ -4,27 +4,27 @@
   "packages": {
     "alert": {
       "version": "0.1.3",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "async-states": {
       "version": "0.1.6",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "binary-controls": {
       "version": "0.1.2",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "button": {
       "version": "0.2.3",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "cmdk": {
       "version": "0.1.12",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "command-surfaces": {
       "version": "0.1.2",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "data-display": {
       "version": "0.1.9",
@@ -32,75 +32,75 @@
     },
     "date-input": {
       "version": "0.1.4",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "dialog": {
       "version": "0.1.4",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "disclosure": {
       "version": "0.1.2",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "drawer": {
       "version": "0.1.3",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "form-fields": {
       "version": "0.1.3",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "layout-surfaces": {
       "version": "0.2.4",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "multi-select": {
       "version": "0.1.4",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "navigation-surfaces": {
       "version": "0.2.3",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "receipt": {
       "version": "0.1.8",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "scenarios": {
       "version": "0.1.2",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "segmented-control": {
       "version": "0.1.2",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "select-card": {
       "version": "0.1.2",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "sidebar": {
       "version": "0.1.9",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "sync": {
       "version": "0.1.1",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "tabs": {
       "version": "0.1.2",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "theme": {
       "version": "0.1.4",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "toast": {
       "version": "0.1.7",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     },
     "undo": {
       "version": "0.1.2",
-      "releaseTag": "components-2026.09.13"
+      "releaseTag": "components-2026.09.26"
     }
   },
   "peers": {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "baselineReleaseTag": "components-2026.09.27.1",
+  "baselineReleaseTag": "components-2026.09.27.2",
   "packages": {
     "alert": {
       "version": "0.1.3",

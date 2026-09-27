@@ -1,6 +1,6 @@
 # Wornpage Licensing Boundary
 
-This document is an engineering policy for the Wornpage mirror. It is not
+This document is an engineering policy for the Wornpage component library. It is not
 legal advice. A copyright or licensing change is a decision for the relevant
 business owner, with qualified legal review where appropriate.
 

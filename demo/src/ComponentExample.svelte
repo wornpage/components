@@ -36,6 +36,7 @@
   let chipPressed = $state(false);
   let displayProgress = $state(7);
   let proposedOwner = $state('Morgan');
+  let showChoiceDetails = $state(true);
   function ownerFields(owner: string) {
     return [
       { id: 'owner', label: 'Owner', before: 'Avery', after: owner },
@@ -193,9 +194,10 @@
     <Progress value={displayProgress} max={10} label="Review complete" />
     <div class="control-row"><Button size="sm" disabled={displayProgress >= 10} onclick={() => displayProgress += 1}>Advance progress</Button><Button size="sm" onclick={() => { displayProgress = 7; chipPressed = false; }}>Reset display</Button></div><Timeline entries={timelineEntries} headingLevel={3} />
     <div class="control-row">
-      <ChoiceImpact label="Assign Morgan" outcome="Open Morgan's work" fields={ownerFields('Morgan')} pressed={proposedOwner === 'Morgan'} onclick={() => proposedOwner = 'Morgan'} />
-      <ChoiceImpact label="Keep Avery" outcome="Open Avery's work" fields={ownerFields('Avery')} pressed={proposedOwner === 'Avery'} onclick={() => proposedOwner = 'Avery'} />
+      <ChoiceImpact label="Assign Morgan" outcome="Open Morgan's work" fields={ownerFields('Morgan')} showDetails={showChoiceDetails} pressed={proposedOwner === 'Morgan'} onclick={() => proposedOwner = 'Morgan'} />
+      <ChoiceImpact label="Keep Avery" outcome="Open Avery's work" fields={ownerFields('Avery')} showDetails={showChoiceDetails} pressed={proposedOwner === 'Avery'} onclick={() => proposedOwner = 'Avery'} />
     </div>
+    <Button size="sm" onclick={() => showChoiceDetails = !showChoiceDetails}>{showChoiceDetails ? 'Use compact choices' : 'Show choice details'}</Button>
     <ChangePreview title="Compare proposed details" headingLevel={3} fields={ownerComparisonFields} />
 
   {:else if id === 'date-input'}

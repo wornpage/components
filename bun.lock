@@ -128,7 +128,7 @@
     },
     "packages/data-display": {
       "name": "@wornpage/data-display",
-      "version": "0.1.9",
+      "version": "0.1.11",
       "devDependencies": {
         "svelte": "^5.56.8",
       },

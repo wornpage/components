@@ -9,6 +9,7 @@ const avatar = read('Avatar');
 const badge = read('Badge');
 const chip = read('Chip');
 const changePreview = read('ChangePreview');
+const choiceImpact = read('ChoiceImpact');
 const metric = read('Metric');
 const metricGrid = read('MetricGrid');
 const progress = read('Progress');
@@ -27,18 +28,27 @@ describe('@wornpage/data-display', () => {
 	it('declares one source-delivered v2 package', () => {
 		const pkg = require('../package.json');
 		expect(pkg.name).toBe('@wornpage/data-display');
-		expect(pkg.version).toBe('0.1.9');
+		expect(pkg.version).toBe('0.1.10');
 		expect(pkg.wornpage).toEqual({ contractVersion: 2, delivery: 'source' });
 		expect(pkg.main).toBe('./src/index.ts');
 	});
 
-	it('exports and compiles all eight component surfaces', async () => {
+	it('exports and compiles all nine component surfaces', async () => {
 		const mod = await import('../src/index.ts');
-		for (const name of ['Avatar', 'Badge', 'Chip', 'ChangePreview', 'Metric', 'MetricGrid', 'Progress', 'Timeline']) expect(mod[name]).toBeDefined();
-		for (const [name, source] of Object.entries({ Avatar: avatar, Badge: badge, Chip: chip, ChangePreview: changePreview, Metric: metric, MetricGrid: metricGrid, Progress: progress, Timeline: timeline })) {
+		for (const name of ['Avatar', 'Badge', 'Chip', 'ChangePreview', 'ChoiceImpact', 'Metric', 'MetricGrid', 'Progress', 'Timeline']) expect(mod[name]).toBeDefined();
+		for (const [name, source] of Object.entries({ Avatar: avatar, Badge: badge, Chip: chip, ChangePreview: changePreview, ChoiceImpact: choiceImpact, Metric: metric, MetricGrid: metricGrid, Progress: progress, Timeline: timeline })) {
 			expect(() => compile(source, { filename: `${name}.svelte`, generate: 'client' })).not.toThrow();
 			expect(() => compile(source, { filename: `${name}.svelte`, generate: 'server' })).not.toThrow();
 		}
+	});
+
+	it('offers a native controlled impact choice with an explicit field denominator', () => {
+		expect(choiceImpact).toContain('type="button"');
+		expect(choiceImpact).toContain('aria-pressed={pressed}');
+		expect(choiceImpact).toContain('changePreviewModel(fields)');
+		expect(choiceImpact).toContain('{model.changedCount} of {model.totalCount}');
+		expect(choiceImpact).toContain('min-block-size: 44px;');
+		expect(choiceImpact).toContain(':focus-visible');
 	});
 
 	it('counts exact changes without hiding the denominator or empty states', () => {

@@ -20,6 +20,7 @@
 	}: Props = $props();
 
 	const headingId = $props.id();
+	const fieldListId = `${headingId}-fields`;
 	let showUnchanged = $state(false);
 	let model = $derived(changePreviewModel(fields, showUnchanged));
 </script>
@@ -33,11 +34,11 @@
 		<p class="worn-change-preview-empty">No fields to compare.</p>
 	{:else}
 		{#if model.unchangedCount > 0 && model.changedCount > 0}
-			<button type="button" class="worn-change-preview-toggle" aria-pressed={showUnchanged} onclick={() => (showUnchanged = !showUnchanged)}>
+			<button type="button" class="worn-change-preview-toggle" aria-expanded={showUnchanged} aria-controls={fieldListId} onclick={() => (showUnchanged = !showUnchanged)}>
 				{showUnchanged ? 'Hide unchanged fields' : `Show ${model.unchangedCount} unchanged ${model.unchangedCount === 1 ? 'field' : 'fields'}`}
 			</button>
 		{/if}
-		<ul class="worn-change-preview-list">
+		<ul id={fieldListId} class="worn-change-preview-list">
 			{#each model.visibleFields as field (field.id)}
 				<li class="worn-change-preview-field" class:is-changed={field.before !== field.after}>
 					<div class="worn-change-preview-field-heading">

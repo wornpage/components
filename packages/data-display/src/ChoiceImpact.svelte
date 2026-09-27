@@ -6,20 +6,23 @@
 		outcome: string;
 		fields: readonly ChangePreviewField[];
 		pressed?: boolean;
+		showDetails?: boolean;
 		onclick: (event: MouseEvent) => void;
 		class?: string;
 	}
 
-	let { label, outcome, fields, pressed = false, onclick, class: extraClass = '' }: Props = $props();
+	let { label, outcome, fields, pressed = false, showDetails = true, onclick, class: extraClass = '' }: Props = $props();
 	let model = $derived(changePreviewModel(fields));
 </script>
 
 <button type="button" class="worn-choice-impact {extraClass}" aria-pressed={pressed} {onclick}>
-	<span class="worn-choice-impact-heading"><strong>{label}</strong><span aria-hidden="true">{pressed ? 'Selected' : 'Choose'}</span></span>
+	<span class="worn-choice-impact-heading"><strong>{label}</strong>{#if pressed || showDetails}<span aria-hidden="true">{pressed ? 'Selected' : 'Choose'}</span>{/if}</span>
+	{#if showDetails}
 	<span class="worn-choice-impact-outcome"><span>Button:</span><strong>{outcome}</strong></span>
 	<span class="worn-choice-impact-count">
 		{model.changedCount} of {model.totalCount} {model.totalCount === 1 ? 'field' : 'fields'} change
 	</span>
+	{/if}
 </button>
 
 <style>

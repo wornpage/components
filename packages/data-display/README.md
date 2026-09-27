@@ -157,12 +157,18 @@ used by `ChangePreview`, so the compact choice count and the detailed review kee
 the same denominator. It never saves the choice or mutates caller data. `aria-pressed`
 reports selection, and native buttons retain keyboard and touch behavior.
 
+Set `showDetails={false}` when the choice group has a separate selected-outcome
+preview and `ChangePreview`. The buttons then show only the choice and selection
+state, avoiding repeated outcomes and counts. Keep the full field denominator in
+the detailed preview; this setting changes presentation, not the proposed data.
+
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `label` | `string` | required | Choice name |
 | `outcome` | `string` | required | Action shown after choosing |
 | `fields` | `ChangePreviewField[]` | required | Current and proposed values |
 | `pressed` | `boolean` | `false` | Controlled selected state |
+| `showDetails` | `boolean` | `true` | Show inline outcome and field count; disable when a separate preview owns those details |
 | `onclick` | `(event: MouseEvent) => void` | required | Choice handler |
 | `class` | `string` | empty | Additional root class |
 

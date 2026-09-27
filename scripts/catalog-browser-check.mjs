@@ -306,6 +306,16 @@ async function exerciseFamilies(page, label) {
   await changePreview.getByRole('button', { name: 'Hide unchanged fields' }).click();
   assert.equal(await changePreview.getByRole('listitem').count(), 1, `${label} changed-only view did not return`);
   assert.equal(await changePreview.evaluate((node) => node.scrollWidth <= node.clientWidth + 1), true, `${label} change preview overflowed its container`);
+  await dataDisplay.getByRole('button', { name: 'Use compact choices', exact: true }).click();
+  assert.equal(await dataDisplay.locator('.worn-choice-impact-outcome, .worn-choice-impact-count').count(), 0, `${label} compact choices must not repeat preview details`);
+  await expectText(changePreview, /1 of 3 fields changes/, `${label} compact choices must retain the comparison denominator`);
+  const assignMorgan = dataDisplay.getByRole('button', { name: 'Assign Morgan', exact: true });
+  await assignMorgan.focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await assignMorgan.getAttribute('aria-pressed'), 'true', `${label} compact choice keyboard selection failed`);
+  await expectText(changePreview, /2 of 3 fields change/, `${label} compact selection must update the shared preview`);
+  await dataDisplay.getByRole('button', { name: 'Show choice details', exact: true }).click();
+  assert.equal(await dataDisplay.locator('.worn-choice-impact-count').count(), 2, `${label} full choice details must restore`);
   mark('data-display');
 
   const date = page.locator('#date-input');

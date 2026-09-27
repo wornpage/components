@@ -3,7 +3,7 @@
 > Part of **[Wornpage Components](https://github.com/wornpage/components#svelte-component-library)**.
 > [Browse the catalog](https://wornpage-components.pages.dev) · [Setup guide](https://github.com/wornpage/components/blob/main/docs/getting-started.md) · [Wornpage overview](https://github.com/wornpage/components)
 
-Compact Svelte 5 badges, chips, avatars, metrics, progress indicators, timelines, and change previews for application workflows.
+Compact Svelte 5 badges, chips, avatars, metrics, progress indicators, timelines, choice impacts, and change previews for application workflows.
 The package is source-delivered so consuming SvelteKit applications compile it with their
 own theme tokens and CSP policy.
 
@@ -28,7 +28,7 @@ npm registry.
 
 ```svelte
 <script>
-  import { Avatar, Badge, Chip, ChangePreview, Metric, MetricGrid, Progress, Timeline } from '@wornpage/data-display';
+  import { Avatar, Badge, Chip, ChangePreview, ChoiceImpact, Metric, MetricGrid, Progress, Timeline } from '@wornpage/data-display';
 
   let active = $state(false);
   const releases = [
@@ -51,6 +51,9 @@ npm registry.
   { id: 'owner', label: 'Owner', before: 'Avery', after: 'Morgan' },
   { id: 'date', label: 'Due date', before: 'Not set', after: 'Friday' }
 ]} />
+<ChoiceImpact label="Assign to Morgan" outcome="Open Morgan's work" fields={[
+  { id: 'owner', label: 'Owner', before: 'Avery', after: 'Morgan' }
+]} pressed={active} onclick={() => active = true} />
 ```
 
 ## Badge
@@ -145,6 +148,23 @@ stays one column at 420 px and below; wider layouts retain the automatic fitting
 `Metric` accepts `label`, `value`, optional `description`, a
 `default | success | warning` tone, and optional child content such as `Progress`. Both surfaces
 contain hostile text without relying on consumer CSS.
+
+## ChoiceImpact
+
+`ChoiceImpact` is a controlled option button for a decision with visible consequences.
+The caller computes the proposed outcome and passes the same `ChangePreviewField[]`
+used by `ChangePreview`, so the compact choice count and the detailed review keep
+the same denominator. It never saves the choice or mutates caller data. `aria-pressed`
+reports selection, and native buttons retain keyboard and touch behavior.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | `string` | required | Choice name |
+| `outcome` | `string` | required | Action shown after choosing |
+| `fields` | `ChangePreviewField[]` | required | Current and proposed values |
+| `pressed` | `boolean` | `false` | Controlled selected state |
+| `onclick` | `(event: MouseEvent) => void` | required | Choice handler |
+| `class` | `string` | empty | Additional root class |
 
 ## ChangePreview
 

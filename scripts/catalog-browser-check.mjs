@@ -298,7 +298,10 @@ async function exerciseFamilies(page, label) {
   await showUnchanged.click();
   assert.equal(await changePreview.getByRole('listitem').count(), 3, `${label} unchanged field reveal did not work`);
   assert.equal(await changePreview.getByRole('button', { name: 'Hide unchanged fields' }).getAttribute('aria-pressed'), 'true');
-  await dataDisplay.getByRole('button', { name: 'Switch proposed owner' }).click();
+  const keepAvery = dataDisplay.getByRole('button', { name: /Keep Avery/ });
+  await expectText(keepAvery, /1 of 3 fields change/, `${label} choice impact lost its full denominator`);
+  await keepAvery.click();
+  assert.equal(await keepAvery.getAttribute('aria-pressed'), 'true');
   await expectText(changePreview, /1 of 3 fields changes/, `${label} proposed values did not update reactively`);
   await changePreview.getByRole('button', { name: 'Hide unchanged fields' }).click();
   assert.equal(await changePreview.getByRole('listitem').count(), 1, `${label} changed-only view did not return`);

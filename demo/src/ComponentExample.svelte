@@ -4,7 +4,7 @@
   import { Checkbox, Switch } from '@wornpage/binary-controls';
   import { Button } from '@wornpage/button';
   import { Kbd, Toolbar } from '@wornpage/command-surfaces';
-  import { Avatar, Badge, Chip, ChangePreview, Progress, Timeline } from '@wornpage/data-display';
+  import { Avatar, Badge, Chip, ChangePreview, ChoiceImpact, Progress, Timeline } from '@wornpage/data-display';
   import { DateInput } from '@wornpage/date-input';
   import { Dialog } from '@wornpage/dialog';
   import { Accordion, Collapsible } from '@wornpage/disclosure';
@@ -36,6 +36,14 @@
   let chipPressed = $state(false);
   let displayProgress = $state(7);
   let proposedOwner = $state('Morgan');
+  function ownerFields(owner: string) {
+    return [
+      { id: 'owner', label: 'Owner', before: 'Avery', after: owner },
+      { id: 'date', label: 'Due date', before: 'Not set', after: 'Friday' },
+      { id: 'status', label: 'Status', before: 'Ready', after: 'Ready' }
+    ];
+  }
+  let ownerComparisonFields = $derived(ownerFields(proposedOwner));
   let dueDate = $state('2026-08-22');
   let dialogOpen = $state(false);
   let approvedReviews = $state(0);
@@ -184,12 +192,11 @@
     <div class="control-row"><Avatar name="Ada Lovelace" status="online" /><Badge label="In review" variant="accent" /><Chip label="Assigned to me" count={8} pressed={chipPressed} onclick={() => chipPressed = !chipPressed} /></div>
     <Progress value={displayProgress} max={10} label="Review complete" />
     <div class="control-row"><Button size="sm" disabled={displayProgress >= 10} onclick={() => displayProgress += 1}>Advance progress</Button><Button size="sm" onclick={() => { displayProgress = 7; chipPressed = false; }}>Reset display</Button></div><Timeline entries={timelineEntries} headingLevel={3} />
-    <div class="control-row"><Button size="sm" onclick={() => (proposedOwner = proposedOwner === 'Morgan' ? 'Avery' : 'Morgan')}>Switch proposed owner</Button></div>
-    <ChangePreview title="Compare proposed details" headingLevel={3} fields={[
-      { id: 'owner', label: 'Owner', before: 'Avery', after: proposedOwner },
-      { id: 'date', label: 'Due date', before: 'Not set', after: 'Friday' },
-      { id: 'status', label: 'Status', before: 'Ready', after: 'Ready' }
-    ]} />
+    <div class="control-row">
+      <ChoiceImpact label="Assign Morgan" outcome="Open Morgan's work" fields={ownerFields('Morgan')} pressed={proposedOwner === 'Morgan'} onclick={() => proposedOwner = 'Morgan'} />
+      <ChoiceImpact label="Keep Avery" outcome="Open Avery's work" fields={ownerFields('Avery')} pressed={proposedOwner === 'Avery'} onclick={() => proposedOwner = 'Avery'} />
+    </div>
+    <ChangePreview title="Compare proposed details" headingLevel={3} fields={ownerComparisonFields} />
 
   {:else if id === 'date-input'}
     <label class="field-label" for="catalog-due-date">Due date</label><DateInput id="catalog-due-date" bind:value={dueDate} min="2026-08-15" max="2026-12-31" required />

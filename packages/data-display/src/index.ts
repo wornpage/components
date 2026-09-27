@@ -2,6 +2,7 @@ export { default as Avatar } from './Avatar.svelte';
 export { default as Badge } from './Badge.svelte';
 export { default as Chip } from './Chip.svelte';
 export { default as ChangePreview } from './ChangePreview.svelte';
+export { default as ChoiceImpact } from './ChoiceImpact.svelte';
 export type { ChangePreviewField } from './change-preview';
 export { default as Metric } from './Metric.svelte';
 export { default as MetricGrid } from './MetricGrid.svelte';

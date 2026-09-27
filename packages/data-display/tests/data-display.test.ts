@@ -28,7 +28,7 @@ describe('@wornpage/data-display', () => {
 	it('declares one source-delivered v2 package', () => {
 		const pkg = require('../package.json');
 		expect(pkg.name).toBe('@wornpage/data-display');
-		expect(pkg.version).toBe('0.1.11');
+		expect(pkg.version).toBe('0.1.12');
 		expect(pkg.wornpage).toEqual({ contractVersion: 2, delivery: 'source' });
 		expect(pkg.main).toBe('./src/index.ts');
 	});

@@ -180,6 +180,10 @@ denominator, shows only changes initially, and offers a native button to reveal
 unchanged fields. When nothing changes, every field remains visible; an empty
 array gives an explicit empty state. The component never applies or saves data.
 
+The reveal button reports `aria-expanded` and identifies its field list with
+`aria-controls`. Enter, Space, and clicking reveal or hide unchanged fields while
+keeping focus on the control and preserving the full comparison denominator.
+
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `title` | `string` | required | Visible and accessible heading |

@@ -2,7 +2,7 @@ import { syncQrSvg } from './qr.js';
 
 /**
  * Generate a random sync code in the format XXXX-XXXX-XXXX-XXXX.
- * Uses crypto.randomUUID() and maps to an alphanumeric code.
+ * Uses crypto.getRandomValues() and maps to an alphanumeric code.
  */
 export function generateSyncCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/I/1 for readability
@@ -57,5 +57,7 @@ export function normalizeSyncCode(raw: string): string | null {
 export { syncQrSvg } from './qr.js';
 
 export function syncQR(syncCode: string, baseUrl: string): string {
-  return syncQrSvg(baseUrl + '?sync=' + encodeURIComponent(syncCode));
+  const url = new URL(baseUrl);
+  url.searchParams.set('sync', syncCode);
+  return syncQrSvg(url.href);
 }

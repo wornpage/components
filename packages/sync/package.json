@@ -1,6 +1,6 @@
 {
   "name": "@wornpage/sync",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Demo state sync code generation and hashing — no-account sharing for wornpage apps",
   "type": "module",
   "wornpage": {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { generateSyncCode, normalizeSyncCode, syncClientId, syncQR } from '../src/index.ts';
+import { generateSyncCode, normalizeSyncCode, syncClientId, syncQR, syncQrSvg } from '../src/index.ts';
 
 describe('generateSyncCode', () => {
   it('produces a code in XXXX-XXXX-XXXX-XXXX format', () => {
@@ -49,5 +49,17 @@ describe('syncQR', () => {
   it('encodes the full URL in the QR', () => {
     const svg = syncQR('TEST-CODE', 'https://example.com');
     expect(svg).toContain('viewBox');
+  });
+  it('preserves existing query parameters and fragment when adding the sync code', () => {
+    expect(syncQR('TEST-CODE', 'https://example.com/work?theme=dark#tasks'))
+      .toBe(syncQrSvg('https://example.com/work?theme=dark&sync=TEST-CODE#tasks'));
+  });
+  it('replaces existing sync parameters with the current code', () => {
+    expect(syncQR('NEW-CODE', 'https://example.com/?sync=OLD&sync=OLDER#work'))
+      .toBe(syncQrSvg('https://example.com/?sync=NEW-CODE#work'));
+  });
+  it('encodes reserved characters in the sync value without changing the link structure', () => {
+    expect(syncQR('CODE&part=#', 'https://example.com/work#tasks'))
+      .toBe(syncQrSvg('https://example.com/work?sync=CODE%26part%3D%23#tasks'));
   });
 });

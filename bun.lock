@@ -272,7 +272,7 @@
     },
     "packages/sync": {
       "name": "@wornpage/sync",
-      "version": "0.1.1",
+      "version": "0.1.2",
     },
     "packages/tabs": {
       "name": "@wornpage/tabs",

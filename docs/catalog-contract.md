@@ -81,6 +81,13 @@ sections, metadata, non-empty semantic tokens, readable shell/accent contrast,
 containment, a real local state transition, persistence, and browser/network
 cleanliness.
 
+Twelve separate Tabs resize-focus cases cover the Svelte component and built
+custom element with normal and reduced motion. They focus each overflow control
+before expanding the container and require focus to return to the selected tab.
+An outside-focus case ensures resizing does not move focus from another control.
+These cases share the existing browser stage and do not change the 16-cell matrix
+or eight-stage verification denominators.
+
 The workspace/build contracts run on Bun 1.3.14. Playwright 1.62.0 and its
 directly owned Vite preview child run on Node 24.18.0; both runtimes are pinned
 in CI, which installs Chromium before the gate. The harness requires its own

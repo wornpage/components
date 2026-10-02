@@ -55,6 +55,12 @@
 
 		const nextHasOverflow = tablist.scrollWidth > tabstrip.clientWidth + 1;
 		const overflowChanged = nextHasOverflow !== hasOverflow;
+		if (hasOverflow && !nextHasOverflow) {
+			const focused = (tabstrip.getRootNode() as Document | ShadowRoot).activeElement;
+			if (focused && tabstrip.contains(focused) && focused.matches('.worn-tabs-control')) {
+				tablist.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="true"]')?.focus({ preventScroll: true });
+			}
+		}
 		hasOverflow = nextHasOverflow;
 		const maxScrollLeft = Math.max(0, tablist.scrollWidth - tablist.clientWidth);
 		canScrollBackward = hasOverflow && tablist.scrollLeft > 1;

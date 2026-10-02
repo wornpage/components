@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -864,6 +864,73 @@ async function assertReducedMotionAndKeyboard(browser) {
   }
 }
 
+async function assertTabsResizeFocus(browser) {
+  const cases = [];
+  const bundle = await readFile(join(REPOSITORY_ROOT, 'packages/tabs/dist/worn-tabs.js'), 'utf8');
+  for (const surface of ['svelte', 'wrapper']) for (const reducedMotion of ['no-preference', 'reduce']) {
+    for (const focus of ['next', 'previous', 'outside']) {
+      const label = `tabs-resize-${surface}-${reducedMotion}-${focus}`;
+      const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion });
+      const page = await context.newPage();
+      const assertClean = watchPage(page, label);
+      try {
+        let shell, widthOwner;
+        if (surface === 'svelte') {
+          await page.goto(`${BASE_URL}/#tabs`, { waitUntil: 'networkidle' });
+          shell = page.locator('#tabs .worn-tabs-shell');
+          await shell.waitFor();
+          await shell.scrollIntoViewIfNeeded();
+          widthOwner = shell;
+        } else {
+          await page.setContent('<div id="tabs-fixture"><worn-tabs></worn-tabs></div>');
+          await page.addScriptTag({ type: 'module', content: bundle });
+          await page.waitForFunction(() => customElements.get('worn-tabs'));
+          await page.evaluate(() => {
+            const control = document.querySelector('worn-tabs');
+            control.tabs = ['Overview', 'Evidence', 'History'].map(label => ({ id: label.toLowerCase(), label }));
+            control.active = 'overview';
+          });
+          shell = page.locator('.worn-tabs-shell');
+          widthOwner = page.locator('#tabs-fixture');
+        }
+        await widthOwner.evaluate(node => { node.style.width = '140px'; });
+        const next = shell.getByRole('button', { name: 'Scroll to next tabs', exact: true });
+        await next.waitFor();
+        const selected = shell.getByRole('tab', { selected: true });
+        const selectedLabel = await selected.innerText();
+        await page.evaluate(() => {
+          const outside = document.createElement('button');
+          outside.id = 'tabs-resize-outside';
+          outside.textContent = 'Outside tabs';
+          document.body.append(outside);
+        });
+        await page.keyboard.press('Tab');
+        if (focus === 'outside') await page.locator('#tabs-resize-outside').focus();
+        else if (focus === 'next') await next.focus();
+        else {
+          await shell.getByRole('tablist').evaluate(node => { node.scrollLeft = node.scrollWidth; });
+          const previous = shell.getByRole('button', { name: 'Scroll to previous tabs', exact: true });
+          await page.waitForFunction(node => !node.disabled, await previous.elementHandle());
+          await previous.focus();
+        }
+        assert.equal(await page.evaluate(() => document.activeElement?.matches('button')), true, `${label}: focus precondition`);
+        await widthOwner.evaluate(node => { node.style.width = '100%'; });
+        await next.waitFor({ state: 'detached' });
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        const target = focus === 'outside' ? page.locator('#tabs-resize-outside') : selected;
+        assert.equal(await target.evaluate(node => document.activeElement === node), true, `${label}: expected surviving focus target`);
+        assert.equal(await selected.innerText(), selectedLabel, `${label}: selection remains unchanged`);
+        await assertClean();
+        cases.push({ surface, reducedMotion, focus, passed: true });
+      } catch (error) {
+        await page.screenshot({ path: join(OUTPUT_DIR, `${label}.png`), fullPage: true });
+        throw error;
+      } finally { await context.close(); }
+    }
+  }
+  return { passed: cases.length, expected: 12, cases };
+}
+
 await prepareCatalogOutput({ repositoryRoot: REPOSITORY_ROOT, clean: !focusOrderingOnly });
 const viteCli = fileURLToPath(new URL('../demo/node_modules/vite/bin/vite.js', import.meta.url));
 const preview = spawn(process.execPath, [viteCli, 'preview', '--host', HOST, '--port', String(PORT), '--strictPort'], {
@@ -892,6 +959,8 @@ try {
     await writeFile(join(OUTPUT_DIR, 'focus-ordering-report.json'), `${JSON.stringify(report, null, 2)}\n`);
     console.log(`catalog browser: ${report.passed}/${report.expected} cancellation-to-navigation focus ordering checks passed`);
   } else {
+   console.log('catalog browser phase start: Tabs resize focus, two delivery surfaces and two motion preferences');
+   const tabsResizeFocus = await assertTabsResizeFocus(browser);
    console.log('catalog browser phase start: header link contrast 8 themes x 2 motion preferences x fine pointer');
    const headerContrast = [];
    for (const reducedMotion of ['no-preference', 'reduce']) {
@@ -956,6 +1025,7 @@ try {
       cases: paletteCancellationNavigation,
     },
     accessibility,
+    tabsResizeFocus,
     screenshots: matrix.length * 4 + system.length,
     pendingDeviceCoverage: ['current iOS Safari', 'installed iOS PWA standalone'],
   };
@@ -969,6 +1039,7 @@ try {
   console.log('catalog browser: 8/8 distinct computed palette signatures per viewport');
   console.log('catalog browser: 2/2 System light/dark cases; motion, keyboard, focus, state, and containment passed');
   console.log('catalog browser: 40/40 cancellation-to-navigation focus ordering checks passed');
+  console.log(`catalog browser: ${tabsResizeFocus.passed}/${tabsResizeFocus.expected} Tabs resize focus checks passed`);
   console.log('catalog browser: iOS Safari and installed iOS PWA remain pending real-device coverage');
   }
 } catch (error) {

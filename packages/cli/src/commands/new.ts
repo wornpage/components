@@ -6,8 +6,8 @@ import {
   renderDeliveryReadmeSection,
 } from '../delivery.ts';
 
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
+function componentName(slug: string): string {
+  return slug.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
 }
 
 export default async function newCommand(name: string) {
@@ -33,7 +33,7 @@ export default async function newCommand(name: string) {
 
   console.log(`\nCreating @wornpage/${name} in ${targetDir}\n`);
 
-  const Cap = capitalize(name);
+  const Cap = componentName(name);
 
   const files: Record<string, string> = {
     'README.md': `# @wornpage/${name}

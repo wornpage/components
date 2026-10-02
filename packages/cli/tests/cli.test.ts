@@ -72,6 +72,19 @@ describe("@wornpage/cli", () => {
     rmSync(targetDir, { recursive: true });
   });
 
+  it("scaffolds hyphenated names with a valid PascalCase component export", async () => {
+    makeWorkspace();
+    const targetDir = join(TMP, "packages", "command-menu");
+    const result = await $`bun run ${CLI} new command-menu`.cwd(TMP).quiet();
+    expect(result.exitCode).toBe(0);
+    const entry = readFileSync(join(targetDir, "src", "index.ts"), "utf-8");
+    expect(() => new Bun.Transpiler({ loader: "ts" }).transformSync(entry)).not.toThrow();
+    expect(entry).toContain("WornCommandMenu");
+    expect(existsSync(join(targetDir, "src", "WornCommandMenu.svelte"))).toBe(true);
+    const verification = await $`bun run ${CLI} verify ${targetDir} --frozen-dist`.quiet();
+    expect(verification.exitCode).toBe(0);
+  });
+
   it("rejects unsafe package names before creating a target", async () => {
     mkdirSync(TMP, { recursive: true });
     const targetDir = join(TMP, "packages", "Bad_Name");

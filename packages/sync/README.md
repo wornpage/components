@@ -45,7 +45,7 @@ normalizeSyncCode('too-short');           // null
 | `syncClientId` | `(code: string) => Promise<string>` | SHA-256 of `projects-web-demo-sync:<code>`, as `sync-<base64url>` |
 | `normalizeSyncCode` | `(raw: string) => string \| null` | Uppercase, strip whitespace, re-insert dashes; `null` if not 16 chars |
 | `syncQrSvg` | `(value: string) => string` | QR code for any string, as an inline SVG |
-| `syncQR` | `(code: string, baseUrl: string) => string` | QR for `<baseUrl>?sync=<code>`, as an inline SVG |
+| `syncQR` | `(code: string, baseUrl: string) => string` | QR for an absolute URL with its `sync` parameter set to the code, preserving other query parameters and the fragment |
 
 ## QR codes
 
@@ -55,6 +55,11 @@ inlined directly rather than loaded as an image:
 ```svelte
 {@html syncQR(code, location.origin)}
 ```
+
+`syncQR` accepts an absolute URL such as `location.href`. It replaces any old
+`sync` parameter while retaining the route, other query parameters, and fragment.
+Invalid URLs throw. The built-in QR encoder accepts at most 106 UTF-8 bytes;
+use a shorter base URL if the resulting link exceeds that limit.
 
 The returned `<svg>` carries a `viewBox` and no intrinsic width, so it fills
 its container — **give that container a size**, or the QR collapses to zero

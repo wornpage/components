@@ -7,6 +7,7 @@ import { chromium } from 'playwright';
 import { catalogOutputDirectory, prepareCatalogOutput } from './catalog-browser-output.mjs';
 import { observePreviewStartup, waitForPreview } from './catalog-preview-readiness.mjs';
 import { observeRenderedReadiness, renderedSampleStatus } from './catalog-rendered-readiness.mjs';
+import { verifyReviewSample } from './catalog-review-sample.mjs';
 import { COMPONENT_NAMES, COMPONENT_RELEASE_TAGS } from './components.ts';
 
 const HOST = '127.0.0.1';
@@ -970,6 +971,12 @@ try {
    const sidebarPlaceholderContrast = await assertSidebarPlaceholderContrast(browser);
    console.log('catalog browser phase start: navigation-responsive');
   const interactions = await assertInteractions(browser);
+  console.log('catalog browser phase start: review components sample');
+  const reviewPage = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const assertReviewClean = watchPage(reviewPage, 'review-components');
+  const reviewSample = await verifyReviewSample(reviewPage, BASE_URL);
+  assertReviewClean();
+  await reviewPage.close();
   const matrix = [];
   for (const viewport of VIEWPORTS) {
     for (const theme of THEMES) {
@@ -1006,6 +1013,7 @@ try {
     },
     system: { passed: system.length, expected: 2, cases: system },
     interactions,
+    reviewSample,
     headerContrast: {
       passed: headerContrast.length,
       expected: THEMES.length * 2,

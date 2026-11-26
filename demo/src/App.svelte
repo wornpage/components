@@ -6,6 +6,7 @@
   import { Sidebar, type NavIcon, type NavItem } from '@wornpage/sidebar';
   import { Theme, type ThemeName } from '@wornpage/theme';
   import ComponentExample from './ComponentExample.svelte';
+  import ReviewExample from './review/ReviewExample.svelte';
   import { CATALOG_GROUPS, DEMO_CATALOG, catalogMetadata, type CatalogCategory, type DemoCatalogId } from './sections';
 
   let currentTheme = $state<ThemeName>('system');
@@ -181,6 +182,7 @@
         <a href="https://github.com/wornpage/components/blob/main/docs/getting-started.md" class="repo-link guide-link">Setup guide</a>
         <a href="https://github.com/wornpage/components" class="repo-link">GitHub</a>
         <a href="https://projects-webmcp-extension.pages.dev/webmcp-challenge" class="repo-link release-link">WebMCP challenge demo</a>
+        <a href="#review-components-preview" class="preview-link">Review components preview</a>
       </div>
       <div class="catalog-jump">
         <label for="catalog-jump">Jump to component</label>
@@ -222,8 +224,19 @@
       {/each}
     {/each}
 
+    <section class="demo-section" id="review-components-preview" aria-labelledby="review-components-heading">
+      <div class="section-heading">
+        <div>
+          <h2 id="review-components-heading">Review components preview</h2>
+          <p>Inspect a recorded diff, review its evidence, and decide on the same sample revision.</p>
+        </div>
+      </div>
+      <ReviewExample />
+    </section>
+
     <footer>
       <a href="https://github.com/wornpage/components">github.com/wornpage/components</a>
+      <a href="./review-components-notices.txt">Review component notices</a>
       <span>MIT</span>
       <span>{DEMO_CATALOG.length} components</span>
     </footer>
@@ -258,9 +271,9 @@
     gap: 8px;
     min-width: 0;
   }
-  .repo-link { align-items: center; background: var(--worn-surface); border: 1px solid var(--worn-border); border-radius: var(--worn-radius-sm); color: inherit; display: inline-flex; font-size: 13px; min-height: 36px; padding: 6px 12px; text-decoration: none; }
-  .repo-link:hover { background: var(--worn-hover-bg); }
-  .repo-link:focus-visible { outline: 2px dashed var(--worn-focus); outline-offset: 2px; }
+  .repo-link, .preview-link { align-items: center; background: var(--worn-surface); border: 1px solid var(--worn-border); border-radius: var(--worn-radius-sm); color: inherit; display: inline-flex; font-size: 13px; min-height: 36px; padding: 6px 12px; text-decoration: none; }
+  .repo-link:hover, .preview-link:hover { background: var(--worn-hover-bg); }
+  .repo-link:focus-visible, .preview-link:focus-visible { outline: 2px dashed var(--worn-focus); outline-offset: 2px; }
   .release-link { background: var(--worn-accent); border-color: var(--worn-accent); color: var(--worn-accent-text); font-weight: 700; }
   .release-link:hover { background: var(--worn-accent); color: var(--worn-accent-text); }
   @media (pointer: coarse) {
